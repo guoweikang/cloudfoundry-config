@@ -1,0 +1,3708 @@
+compilation:
+  cloud_properties:
+    instance_type: m1.medium
+  network: cf1
+  reuse_compilation_vms: true
+  workers: 6
+director_uuid: 61c6d9dd-5cbc-4df2-bd44-e3bb93660f32
+jobs:
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: consul_z1
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.0.1.137
+  persistent_disk: 1024
+  properties:
+    consul:
+      agent:
+        mode: server
+    metron_agent:
+      zone: z1
+  resource_pool: small_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: consul_z2
+  networks:
+  - name: cf2
+    static_ips: []
+  persistent_disk: 1024
+  properties:
+    consul:
+      agent:
+        mode: server
+    metron_agent:
+      zone: z2
+  resource_pool: small_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: nats_z1
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.0.1.127
+  properties:
+    metron_agent:
+      zone: z1
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: nats
+    release: cf
+  - name: nats_stream_forwarder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: nats_z2
+  networks:
+  - name: cf2
+    static_ips: []
+  properties:
+    metron_agent:
+      zone: z2
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: nats
+    release: cf
+  - name: nats_stream_forwarder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: etcd_z1
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.0.1.133
+  persistent_disk: 10024
+  properties:
+    consul:
+      agent:
+        services:
+          etcd:
+            name: cf-etcd
+    metron_agent:
+      zone: z1
+  resource_pool: large_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      etcd: nil
+    name: etcd
+    release: cf
+  - name: etcd_metrics_server
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: etcd_z2
+  networks:
+  - name: cf2
+    static_ips: []
+  persistent_disk: 10024
+  properties:
+    consul:
+      agent:
+        services:
+          etcd:
+            name: cf-etcd
+    metron_agent:
+      zone: z2
+  resource_pool: large_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      etcd: nil
+    name: etcd
+    release: cf
+  - name: etcd_metrics_server
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: stats_z1
+  networks:
+  - name: cf1
+  properties:
+    metron_agent:
+      zone: z1
+  resource_pool: small_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: collector
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 0
+  name: nfs_z1
+  networks:
+  - name: cf1
+    static_ips: []
+  persistent_disk: 102400
+  properties:
+    consul:
+      agent:
+        services:
+          blobstore: {}
+    metron_agent:
+      zone: z1
+    route_registrar:
+      routes:
+      - name: blobstore
+        port: 8080
+        registration_interval: 20s
+        tags:
+          component: blobstore
+        uris:
+        - blobstore.cf.kyland.com
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: debian_nfs_server
+    release: cf
+  - name: metron_agent
+    release: cf
+  - name: blobstore
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: blobstore_z1
+  networks:
+  - name: cf1
+  persistent_disk: 102400
+  properties:
+    consul:
+      agent:
+        services:
+          blobstore: {}
+    metron_agent:
+      zone: z1
+    route_registrar:
+      routes:
+      - name: blobstore
+        port: 8080
+        registration_interval: 20s
+        tags:
+          component: blobstore
+        uris:
+        - blobstore.cf.kyland.com
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: metron_agent
+    release: cf
+  - name: blobstore
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: postgres_z1
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.0.1.129
+  persistent_disk: 4096
+  properties:
+    metron_agent:
+      zone: z1
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: postgres
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: uaa_z1
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          uaa: {}
+    metron_agent:
+      zone: z1
+    route_registrar:
+      routes:
+      - health_check:
+          name: uaa-healthcheck
+          script_path: /var/vcap/jobs/uaa/bin/health_check
+        name: uaa
+        port: 8080
+        registration_interval: 4s
+        tags:
+          component: uaa
+        uris:
+        - uaa.cf.kyland.com
+        - '*.uaa.cf.kyland.com'
+        - login.cf.kyland.com
+        - '*.login.cf.kyland.com'
+    uaa:
+      proxy:
+        servers:
+        - 10.0.1.130
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: uaa
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  - name: statsd_injector
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: uaa_z2
+  networks:
+  - name: cf2
+  properties:
+    consul:
+      agent:
+        services:
+          uaa: {}
+    metron_agent:
+      zone: z2
+    route_registrar:
+      routes:
+      - health_check:
+          name: uaa-healthcheck
+          script_path: /var/vcap/jobs/uaa/bin/health_check
+        name: uaa
+        port: 8080
+        registration_interval: 4s
+        tags:
+          component: uaa
+        uris:
+        - uaa.cf.kyland.com
+        - '*.uaa.cf.kyland.com'
+        - login.cf.kyland.com
+        - '*.login.cf.kyland.com'
+    uaa:
+      proxy:
+        servers:
+        - 10.0.1.130
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: uaa
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  - name: statsd_injector
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: api_z1
+  networks:
+  - name: cf1
+  persistent_disk: 0
+  properties:
+    consul:
+      agent:
+        services:
+          cloud_controller_ng: {}
+    metron_agent:
+      zone: z1
+    nfs_server:
+      address: null
+      allow_from_entries:
+      - 10.0.1.0/24
+      - 10.0.1.0/24
+      share: null
+    route_registrar:
+      routes:
+      - name: api
+        port: 9022
+        registration_interval: 20s
+        tags:
+          component: CloudController
+        uris:
+        - api.cf.kyland.com
+  resource_pool: large_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: java-buildpack
+    release: cf
+  - name: java-offline-buildpack
+    release: cf
+  - name: go-buildpack
+    release: cf
+  - name: binary-buildpack
+    release: cf
+  - name: nodejs-buildpack
+    release: cf
+  - name: ruby-buildpack
+    release: cf
+  - name: php-buildpack
+    release: cf
+  - name: python-buildpack
+    release: cf
+  - name: staticfile-buildpack
+    release: cf
+  - name: dotnet-core-buildpack
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_ng
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_clock
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_worker
+    release: cf
+  - name: metron_agent
+    release: cf
+  - name: statsd_injector
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: api_z2
+  networks:
+  - name: cf2
+  persistent_disk: 0
+  properties:
+    consul:
+      agent:
+        services:
+          cloud_controller_ng: {}
+    metron_agent:
+      zone: z2
+    nfs_server:
+      address: null
+      allow_from_entries:
+      - 10.0.1.0/24
+      - 10.0.1.0/24
+      share: null
+    route_registrar:
+      routes:
+      - name: api
+        port: 9022
+        registration_interval: 20s
+        tags:
+          component: CloudController
+        uris:
+        - api.cf.kyland.com
+  resource_pool: large_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: java-buildpack
+    release: cf
+  - name: java-offline-buildpack
+    release: cf
+  - name: go-buildpack
+    release: cf
+  - name: binary-buildpack
+    release: cf
+  - name: nodejs-buildpack
+    release: cf
+  - name: ruby-buildpack
+    release: cf
+  - name: php-buildpack
+    release: cf
+  - name: python-buildpack
+    release: cf
+  - name: staticfile-buildpack
+    release: cf
+  - name: dotnet-core-buildpack
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_ng
+    release: cf
+  - name: metron_agent
+    release: cf
+  - name: statsd_injector
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: clock_z1
+  networks:
+  - name: cf1
+  persistent_disk: 0
+  properties:
+    metron_agent:
+      zone: z1
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_clock
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 0
+  name: api_worker_z1
+  networks:
+  - name: cf1
+  persistent_disk: 0
+  properties:
+    metron_agent:
+      zone: z1
+    nfs_server:
+      address: null
+      allow_from_entries:
+      - 10.0.1.0/24
+      - 10.0.1.0/24
+      share: null
+  resource_pool: small_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_worker
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: clock_z2
+  networks:
+  - name: cf2
+  persistent_disk: 0
+  properties:
+    metron_agent:
+      zone: z2
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_clock
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: api_worker_z2
+  networks:
+  - name: cf2
+  persistent_disk: 0
+  properties:
+    metron_agent:
+      zone: z2
+    nfs_server:
+      address: null
+      allow_from_entries:
+      - 10.0.1.0/24
+      - 10.0.1.0/24
+      share: null
+  resource_pool: small_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: cloud_controller_worker
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: hm9000_z1
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          hm9000: {}
+    metron_agent:
+      zone: z1
+    route_registrar:
+      routes:
+      - name: hm9000
+        port: 5155
+        registration_interval: 20s
+        tags:
+          component: HM9K
+        uris:
+        - hm9000.cf.kyland.com
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: hm9000
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: hm9000_z2
+  networks:
+  - name: cf2
+  properties:
+    consul:
+      agent:
+        services:
+          hm9000: {}
+    metron_agent:
+      zone: z2
+    route_registrar:
+      routes:
+      - name: hm9000
+        port: 5155
+        registration_interval: 20s
+        tags:
+          component: HM9K
+        uris:
+        - hm9000.cf.kyland.com
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: hm9000
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: runner_z1
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          dea:
+            check:
+              interval: 5m
+              name: dns_health_check
+              script: /var/vcap/jobs/dea_next/bin/dns_health_check
+              status: passing
+    dea_next:
+      zone: z1
+    metron_agent:
+      zone: z1
+  resource_pool: runner_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: dea_next
+    release: cf
+  - name: dea_logging_agent
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: runner_z2
+  networks:
+  - name: cf2
+  properties:
+    consul:
+      agent:
+        services:
+          dea:
+            check:
+              interval: 5m
+              name: dns_health_check
+              script: /var/vcap/jobs/dea_next/bin/dns_health_check
+              status: passing
+    dea_next:
+      zone: z2
+    metron_agent:
+      zone: z2
+  resource_pool: runner_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: dea_next
+    release: cf
+  - name: dea_logging_agent
+    release: cf
+  - name: metron_agent
+    release: cf
+  update:
+    max_in_flight: 1
+- default_networks:
+  - name: cf1
+  instances: 0
+  name: loggregator_z1
+  networks:
+  - name: cf1
+  properties:
+    doppler:
+      zone: z1
+    metron_agent:
+      zone: z1
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: doppler
+    release: cf
+  - name: syslog_drain_binder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: loggregator_z2
+  networks:
+  - name: cf2
+  properties:
+    doppler:
+      zone: z2
+    metron_agent:
+      zone: z2
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: doppler
+    release: cf
+  - name: syslog_drain_binder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: doppler_z1
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          doppler:
+            name: doppler
+            tags:
+            - z1
+    doppler:
+      zone: z1
+    metron_agent:
+      zone: z1
+  resource_pool: medium_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: doppler
+    release: cf
+  - name: syslog_drain_binder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: doppler_z2
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          doppler:
+            name: doppler
+            tags:
+            - z2
+    doppler:
+      zone: z2
+    metron_agent:
+      zone: z2
+  resource_pool: medium_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - name: doppler
+    release: cf
+  - name: syslog_drain_binder
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: loggregator_trafficcontroller_z1
+  networks:
+  - name: cf1
+  properties:
+    consul:
+      agent:
+        services:
+          loggregator_trafficcontroller: {}
+    loggregator:
+      uaa:
+        client_secret: openstack
+    metron_agent:
+      zone: z1
+    route_registrar:
+      routes:
+      - name: doppler
+        port: 8081
+        registration_interval: 20s
+        uris:
+        - doppler.cf.kyland.com
+    traffic_controller:
+      zone: z1
+  resource_pool: small_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      doppler: nil
+    name: loggregator_trafficcontroller
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: loggregator_trafficcontroller_z2
+  networks:
+  - name: cf2
+  properties:
+    consul:
+      agent:
+        services:
+          loggregator_trafficcontroller: {}
+    loggregator:
+      uaa:
+        client_secret: openstack
+    metron_agent:
+      zone: z2
+    route_registrar:
+      routes:
+      - name: doppler
+        port: 8081
+        registration_interval: 20s
+        uris:
+        - doppler.cf.kyland.com
+    traffic_controller:
+      zone: z2
+  resource_pool: small_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      doppler: nil
+    name: loggregator_trafficcontroller
+    release: cf
+  - name: metron_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: route_registrar
+    release: cf
+  update:
+    max_in_flight: 1
+    serial: true
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: router_z1
+  networks:
+  - name: cf1
+    static_ips:
+    - 10.0.1.130
+  properties:
+    consul:
+      agent:
+        services:
+          gorouter: {}
+    metron_agent:
+      zone: z1
+  resource_pool: router_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: gorouter
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf2
+  instances: 0
+  name: router_z2
+  networks:
+  - name: cf2
+    static_ips: []
+  properties:
+    consul:
+      agent:
+        services:
+          gorouter: {}
+    metron_agent:
+      zone: z2
+  resource_pool: router_z2
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      nats: nil
+    name: gorouter
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  name: ha_proxy_z1
+  networks:
+  - name: floating
+    static_ips:
+    - 192.168.60.208
+  - default:
+    - dns
+    - gateway
+    name: cf1
+    static_ips:
+    - 10.0.1.125
+  properties:
+    ha_proxy:
+      ssl_pem: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        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
+        -----END RSA PRIVATE KEY-----
+        -----BEGIN CERTIFICATE-----
+        MIIFEzCCAvugAwIBAgIBATANBgkqhkiG9w0BAQsFADAZMRcwFQYDVQQDEw5jZXJ0
+        LWF1dGhvcml0eTAeFw0xNzA0MTcwMzQ0MzdaFw0yNzA0MTcwMzQ0NDRaMBkxFzAV
+        BgNVBAMTDmNlcnQtYXV0aG9yaXR5MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+        CgKCAgEAt2CFTrKnB91SBpoRoArzmA+Q+DkdM9pYN5Fanq4HAwqVIh/REBJ/JM5E
+        POuYqrU2bScYkqy1obCCTv4Z9R1SmbScZQa4fRVspjTU5KI1DP1Fbiw4r0ZatcTB
+        P05Y9Q8kpFcG5amN8RNuBO1HAd/M9Zdy23Yaba8AZAe+NgZmKQvdMQ1nvawj2YXg
+        Kqbfp6g8+9TZy/OJDfjX3uGh0YAcfFON7k4IO8A5lw6LgZumeU0N72wZyr3IYj3A
+        Y2LYgbbYms56D6qhIplHiGSirNw4bw4wvgxyW7pTKD1RiKnMHZP7F7XNhAY1tzO8
+        Pu+tc4YFLmXURXDV5GmN5UzsL7eGkcnrQfukSjfVtfVOBsAqPlurbmmlFmrQq0nr
+        dv1qNoR6eswZlvLO2qW1qd1PXZQ1q4TUKXQ2w4ZgVfjrc0J1mdheeTS3XNwkzBmU
+        dzSezmZI9FMmCNY0fo4HbHq4rVKEdqQQ/Jtk8s5b4o0dDiIiWVAZk9spXrhnBNbj
+        Z2xDXvuFE1ucHURee3GY3IFdHTYKxCJtBtP+rfhsNUNPeMCqnD7gz9SNtK30bYuk
+        buxpqcMUGkydF24VsKXXR4L+bR5NFywkfvVSAA/JAkGLM2O5XCPb7IX5qC73QQn+
+        ePxXHSnjUFgTwEmR1m5t+7c0YczpxIs58ZgOOfLBFBqzrC5xdzUCAwEAAaNmMGQw
+        DgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFNZx
+        JIeWnqPdlU2sFcyrGYgG542+MB8GA1UdIwQYMBaAFNZxJIeWnqPdlU2sFcyrGYgG
+        542+MA0GCSqGSIb3DQEBCwUAA4ICAQB2mp7a7WRjzyg8y7yTKs8slhFBi7QQKron
+        IjYD3TtTD+JUdievRfrKPeiZjm51Jk+s+2Fe5dC4Dx5lh3d11k388zwugPF3nCvm
+        4es2HnVjPY50Je2xQYRv2CTTM9SkC0+dbpwNU7Nfaeb3HeL1Bq+2ioXE2zAIyw9N
+        uevsdImkY1asYtA2OWuOJrzmSuVOTm/eqnIq4C8rRcNUAanSC/feKkKnEjCI+62T
+        TB+UmMlY4Qh+tCXUTl672dFRbuGTUIdA6GxUWLrA4YICunYT5rdcl88Y2tUWAxRe
+        S1j4kT+0Xg/FWwtFVhXXckBxceQGCYc61Y3V3+AHgcx/Lykhdff6r0c9v5jsA48R
+        DNVdDS+RDiuFnsyM2ojjyj3Z978qDPjqOiV+pTRGECRFnjn7+VETzqhXrMF9n1/J
+        icUB6m0SKlrX893Yq3m2t9bLqo7C/BdJF5FDuLBnp0vP8Lp1MnDXh42dPeq3YmSI
+        4ohsIMpWX+LgvpRiLa7829AU7zCbKcMrxXmQ0Y8OfJyPuXBPJ70VvANNyWRYniWn
+        YUNs9BqSRX+oCd2Bez3aLrfYqru61CZz1Lv6Cf/YR2NPy36yLCn2Bz3kB9q36U4i
+        LcoyZSO1KP2u6NVdeOX/rIiPOwq4qx58WVtjM5a0/xBqU/a06eWbYxcWMEbE6tuH
+        K3ByaRi+fQ==
+        -----END CERTIFICATE-----
+    metron_agent:
+      zone: z1
+    router:
+      servers:
+      - 10.0.1.130
+  resource_pool: router_z1
+  templates:
+  - consumes:
+      consul: nil
+    name: consul_agent
+    release: cf
+  - consumes:
+      router: nil
+    name: haproxy
+    release: cf
+  - name: metron_agent
+    release: cf
+  update: {}
+- default_networks:
+  - name: cf1
+  instances: 1
+  lifecycle: errand
+  name: acceptance_tests
+  networks:
+  - name: cf1
+  resource_pool: small_errand
+  templates:
+  - name: acceptance-tests
+    release: cf
+- default_networks:
+  - name: cf1
+  instances: 0
+  lifecycle: errand
+  name: smoke_tests
+  networks:
+  - name: cf1
+  properties: {}
+  resource_pool: small_errand
+  templates:
+  - name: smoke-tests
+    release: cf
+name: openstack-cf
+networks:
+- cloud_properties:
+    net_id: 365fc8c4-7edf-493b-9b6e-7fe3d4761d98
+    security_groups: []
+  name: floating
+  type: vip
+- name: cf1
+  subnets:
+  - cloud_properties:
+      net_id: 5b3fdc43-504e-42bc-8a9d-81445ccbc4fb
+      security_groups:
+      - CF
+    dns:
+    - 8.8.8.8
+    gateway: 10.0.1.1
+    range: 10.0.1.0/24
+    reserved:
+    - 10.0.1.2 - 10.0.1.100
+    - 10.0.1.200 - 10.0.1.254
+    static:
+    - 10.0.1.125 - 10.0.1.175
+  type: manual
+- name: cf2
+  subnets:
+  - cloud_properties:
+      net_id: 5b3fdc43-504e-42bc-8a9d-81445ccbc4fb
+      security_groups:
+      - CF
+    dns:
+    - 8.8.8.8
+    gateway: 10.0.1.1
+    range: 10.0.1.0/24
+    reserved:
+    - 10.0.1.2 - 10.0.1.100
+    - 10.0.1.200 - 10.0.1.254
+    static:
+    - 10.0.1.125 - 10.0.1.175
+  type: manual
+properties:
+  acceptance_tests: null
+  app_domains:
+  - cloud-09.cf-app.com
+  app_ssh: null
+  blobstore:
+    admin_users:
+    - password: openstack
+      username: admin
+    port: 8080
+    secure_link:
+      secret: openstack
+    tls:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFEzCCAvugAwIBAgIBATANBgkqhkiG9w0BAQsFADAZMRcwFQYDVQQDEw5jZXJ0
+        LWF1dGhvcml0eTAeFw0xNzAxMTYwMjM1NTRaFw0yNzAxMTYwMjM1NTdaMBkxFzAV
+        BgNVBAMTDmNlcnQtYXV0aG9yaXR5MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+        CgKCAgEArbOKI6ZX0hciuQMiV9R272rC7XjA1Mg5uSS5jdiIaoV8Umcz+EV7ImZW
+        M/Ttp9BxLMrl+VpaRE6aia9NhDxF4rtskDsCAy215cvqil6DEIMbI4Wf1CJIGimM
+        Q552nxcibgosvDU8V/UMuveza9DjoJv5mgYyJP6jZofV0ElhdtsB/Gv/0+TI++ks
+        a+yTeTnPp1uEDywweIkZD2PFChL7AlC7czI5J5ARxs91kTIdNXTnY+RHxLmZY1AN
+        GNA19iubyDVqTJehzRgfnp8ddah6ZXyEvVhJ7Rx4vO53j2n67HQKMvY6QQIahUFy
+        NZRVoWUVT1rE3CCRnbUOZw9yB3mkxnKlr9LlM0PC/Py1SNihAtMOHJ+QovTzJR8/
+        GwZY/8mwE1iUzBpMDXzwfLJ9MntivFSGuN9p2OiimCW/YxHyJw8otevBhlNYLX0/
+        uQbV/JEQuymPzWuXwVrT6vA/FDvWHXH5+qGLjP1uzRJeAeh7F60giyWnn5Kz6yN7
+        kY+xlrXfEp6QrOZMGXEPVmumtS4hTIEJig+EjdP/qDJO6keATsBbefSRJoUTw1hS
+        IuEg/lfKP2via1V6bMrlb6dNl04WBtJqu/W58K8+XGCztCZFoTLNtWqQHQr32/x2
+        lVamHFo4vzEYdzbX+bCjh9/lapWpwB0syr9YAavsSIrLI0+fvWECAwEAAaNmMGQw
+        DgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFLPW
+        2reUoJ8Wty2XycIAbC2EehlrMB8GA1UdIwQYMBaAFLPW2reUoJ8Wty2XycIAbC2E
+        ehlrMA0GCSqGSIb3DQEBCwUAA4ICAQBRuj1N4PZKjt31rI/q5EpZrXXtxGpySfyS
+        Wmr14AGkBydBhDngvFj2mIt9nWeMsohCbavyCiYsdSMBOnOEzam2mbUziOumjLL9
+        nqSPbJqtnawW5S+v0tH5ABqeDy1F65e549YdhDC4JHjCqe3NEpB7mQ4LZ6c1UX3F
+        yTXY8cd/xT95glFe8ObUBlN1sXkQ4sdjcnyA09N7dJ+GHzZLrtrs7n1Yf/eXFN/m
+        d+VhDUJv1YCVxoqCpkng7BTWfEB5YRe8cp5UE2MN+7v2lNQDkQFAwWZQM7RzWRM/
+        TdhpWMyCiBglvQQM7NRgKPzPM8M40UV8LkdzlqD+R8nBnoYLDzE4JtcO0y4B41Ol
+        2xM0f5jw866BzsD2WbAdG3Dwn8zJmhcoVE29q+ElnGJo/T9yZ16TYQwC+Wdj/+mf
+        yg1dlj8gddZkqQQpfon2/sy92ulFSPkyJRqid03BiZqb7JnSQ7XTmNKsNavLJnZ4
+        hkOrLGkFxHzoncKzHe8CQ/l8kS+bQGEGm6zuzgUivLskKA+v9rX5PqneD6OF/bkg
+        SHrWtoOb2Lo5tt60TJ2a/M30R+KTLq8Q2MZ6PeaNl6AsR//gCQjgnr4j4yOvDxJX
+        jpowYV1aR4+BGO3WTFB0whoL2dgEzOzvXTaRHdq4m9UFU61YPS/6lNkOEhkCyZw6
+        EfB82VpsxA==
+        -----END CERTIFICATE-----
+      cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEPDCCAiSgAwIBAgIQLE04m4pwYR6qxeCur0FfpzANBgkqhkiG9w0BAQsFADAZ
+        MRcwFQYDVQQDEw5jZXJ0LWF1dGhvcml0eTAeFw0xNzAxMTYwMjM1NThaFw0xOTAx
+        MTYwMjM1NThaMCgxJjAkBgNVBAMTHWJsb2JzdG9yZS5zZXJ2aWNlLmNmLmludGVy
+        bmFsMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3Qu+HMIfoFXYvc6t
+        /mA05F8kbiCCUGqYnIvFQbwx7LaDYor9DcUk/SeLGvZDVowAIvqXVZHKPdbs+YE4
+        ZUYxe8uwq6HqDXSMBnYmTyrkLR8/f1DnF97yxRLdY3sncfL5gVp4oYI/55g5InLW
+        b33OBqwVBHiaxN1Jf7dujr/FKndHt6vOclCAM0hRQVXQrWIfaI2bcwIs3ZeVwTiN
+        TRXUWatf8aqyoT9NVluAQWoIyQMG0QEJSKi1dP46laj4po2uOuume1CCk8zg2fVl
+        59JA6VqbssRqczEChsfKhDc0mlwaualsAiLUODTo3j/81jUaruGdF7avkXHdSVu9
+        s4VpewIDAQABo3EwbzAOBgNVHQ8BAf8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUH
+        AwEGCCsGAQUFBwMCMB0GA1UdDgQWBBQDeiAYjWP58q+bYHP7mpXWNL68GjAfBgNV
+        HSMEGDAWgBSz1tq3lKCfFrctl8nCAGwthHoZazANBgkqhkiG9w0BAQsFAAOCAgEA
+        DO+nc03/2jlGyGGjXRBJS3n/wR3UyobpT4/AXK90TZbsZ1uyCZZTlY/1UL42h73H
+        V7Aj7iZ0DNuapx8t6Mc309ReSVapHsGxcgY39eDTxIUoL5jfo29lm9HTI1VKNwB4
+        pfX0zMd7C2dDgoal1znHen+97XGLniX9IfZvhvevAYkgkOx4U91frJdmnNU3BpGg
+        wBe2ar5dgh058KfS4uTppGjSirDRopvHCvYNh6OdU4DVstMJISnkFqao2cVamW1D
+        CoeKJ/wmcezJ96SQ6GGuq3DPf96PeGe7xllyTYCtbgYGbJdbFLZthJ6NyFUyPgiK
+        e0f9gjepn/B4x1uzQ4ftSxAaLyWvfTaSK+lnvtGfDopg2iwCJirmxzsncbNX3ZD/
+        syakubiOg8HZpa8ub2CeMnwC+H7nZwWZ1K/ae0eYj67br6EC91wP9s1ceiLTgMRi
+        IDTcRoKKleYa9SrHWQOa3dMB88YjPFMn6riiVQVhaVr8XFoat+MREIlXCrEH+2+9
+        hYy+YmdJtfrm+YPPHN26GVT0eeRcqTSGDkdY8aHc77Ez/peb8TGC2B+PS4eX28EO
+        YOZtsI9Kib1HFbKwUCH0Fx4/NwUhlcCU0yWZYgxhLWGrI5sHXtERXY8J/Ur0NwDY
+        TwQS9UkaHf2Knvn9InRm1FneB1LuNXA9nG+S145+ucw=
+        -----END CERTIFICATE-----
+      port: 4443
+      private_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpQIBAAKCAQEA3Qu+HMIfoFXYvc6t/mA05F8kbiCCUGqYnIvFQbwx7LaDYor9
+        DcUk/SeLGvZDVowAIvqXVZHKPdbs+YE4ZUYxe8uwq6HqDXSMBnYmTyrkLR8/f1Dn
+        F97yxRLdY3sncfL5gVp4oYI/55g5InLWb33OBqwVBHiaxN1Jf7dujr/FKndHt6vO
+        clCAM0hRQVXQrWIfaI2bcwIs3ZeVwTiNTRXUWatf8aqyoT9NVluAQWoIyQMG0QEJ
+        SKi1dP46laj4po2uOuume1CCk8zg2fVl59JA6VqbssRqczEChsfKhDc0mlwauals
+        AiLUODTo3j/81jUaruGdF7avkXHdSVu9s4VpewIDAQABAoIBAQC9RFe1IhaYX8kk
+        xHpAy7meLUTxMs7B8nPX3um4nl6VE7Wtw9pnVv2T8a7vGBuSWG+pg63eq+ViS8w+
+        2wEh3hdyq3cLjqjsenWG9tVYhh438ICbD/e/fbubOMrtaj7dF7HBq2iMygzTzYhm
+        UbQAZNTq659XY7kJhXxwaey1N8in0UDns+Tz+JkMHrJxjjpq5zvwfwrEbz0KNLQi
+        vKURxcnYp9ZqSnYz4cYMILcOcG27qpNlDQ+5D5qyVmzYPa+Xb8a175Z4WoKFtp3K
+        Qp2hZCccCkJCXZB2G4b7MZzVZ0Gp/Gee9YK1Nto2lNslWcqm3Jf0ZI6i8ACcxyT8
+        GAEZ/skxAoGBAPBTwURkRBLHPG0UES7jzaqFWmLYQEAGD8mfWMUdt2nhpkPmuj5d
+        ysAWb2fpRKjoul5icesXixAiZwoa8P7z/iUc6wa7Ydn3TO5YrYs2m7Gnrf6sQ0cs
+        afJSvtZ7POSDluiN5Wum2AiSRtq8ExT9SKBR3alVyhXliZNZIzUbzCmJAoGBAOt2
+        FngLYuffpB7ApZ3vurzQbWLcV3ei0SiHwCGbz0PGpgSD/n1GzKQRz13xQXGvmvBg
+        lC2km4AdXnkXNDp5QBrbqzFqpQcN1/J26fCwwgYoGQGuCtb9v4kV31s0u2pY2Mvf
+        zVrqLYqnsx1Y1prrPm1WtoB/1wFrFzqb100uU63jAoGBAOuCOC/sTeVVBzshYiFg
+        Leh/2+5nWrci+Y+srtIj59xDu6pozXRWd1y735qltpoLzq61rEskfCtoey8k7av6
+        sL/v0cV8FU0DEomzrwVwkyyKVHDwoNF7jathORB4HlkVNupYO02+Z5AmwHaTveNg
+        vi4Va7IIlwvUL3iM7nqZ7f15AoGATy2YhKmfisWDlOvHRYLV0qRsBDCAITTZDL4J
+        d8PDQNFOBnq0W0AxlIKAruBv12DrwyVW7rpJqB04JZQN9hPL4Lw5pxZrhCG9mkUu
+        iceGlzdooU37Syxs+hYm0665zxstW/FYRtg0lEmsS5QSJmowxefA2xkiHdH7L7Q0
+        BDot3W0CgYEA74++lqMswen4C+nzFZfNZwV87p06pp+/WYbSaRT2oAzB5mq5Ra6v
+        xRuqNZ1aAyar/Ad3Meecx9xmQTeD1ADkXOGRTOg2HDYbwTxZYvXAVn7arOmuhg5m
+        EvQm9BjjXsWb2+bYhzkfITBZUFeqgfwNWNxvsQyc7CBfxVuOFgmsEtc=
+        -----END RSA PRIVATE KEY-----
+  cc:
+    allow_app_ssh_access: true
+    allowed_cors_domains: []
+    app_events:
+      cutoff_age_in_days: 31
+    app_usage_events:
+      cutoff_age_in_days: 31
+    audit_events:
+      cutoff_age_in_days: 31
+    broker_client_default_async_poll_interval_seconds: null
+    broker_client_max_async_poll_duration_minutes: null
+    broker_client_timeout_seconds: 70
+    buildpacks:
+      blobstore_type: webdav
+      buildpack_directory_key: cf.kyland.com-cc-buildpacks
+      cdn: null
+      fog_aws_storage_options: null
+      fog_connection: null
+      webdav_config:
+        blobstore_timeout: 5
+        ca_cert: |+
+          -----BEGIN CERTIFICATE-----
+          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
+          EfB82VpsxA==
+          -----END CERTIFICATE-----
+        password: openstack
+        private_endpoint: https://blobstore.service.cf.internal:4443
+        public_endpoint: http://blobstore.cf.kyland.com
+        username: admin
+    bulk_api_password: openstack
+    client_max_body_size: 15M
+    db_encryption_key: vhdX2Cp3SnzxJNLtOfjsFs2j5zflXuKj
+    db_logging_level: debug2
+    dea_use_https: false
+    default_app_disk_in_mb: 1024
+    default_app_memory: 1024
+    default_app_ssh_access: null
+    default_buildpacks:
+    - name: staticfile_buildpack
+      package: staticfile-buildpack
+    - name: java_buildpack
+      package: java-buildpack
+    - name: ruby_buildpack
+      package: ruby-buildpack
+    - name: nodejs_buildpack
+      package: nodejs-buildpack
+    - name: go_buildpack
+      package: go-buildpack
+    - name: python_buildpack
+      package: python-buildpack
+    - name: php_buildpack
+      package: php-buildpack
+    - name: binary_buildpack
+      package: binary-buildpack
+    - name: dotnet_core_buildpack
+      package: dotnet-core-buildpack
+    default_health_check_timeout: 60
+    default_quota_definition: default
+    default_running_security_groups:
+    - public_networks
+    - dns
+    default_staging_security_groups:
+    - public_networks
+    - dns
+    default_to_diego_backend: false
+    development_mode: false
+    diego:
+      bbs:
+        url: null
+      insecure_docker_registry_list: null
+      pid_limit: null
+      temporary_cc_uploader_mtls: null
+      temporary_droplet_download_mtls: null
+      temporary_local_apps: null
+      temporary_local_staging: null
+      temporary_local_sync: null
+      temporary_local_tasks: null
+      temporary_local_tps: null
+      use_privileged_containers_for_staging: null
+    directories: null
+    disable_custom_buildpacks: false
+    droplets:
+      blobstore_type: webdav
+      cdn: null
+      droplet_directory_key: cf.kyland.com-cc-droplets
+      fog_aws_storage_options: null
+      fog_connection: null
+      max_staged_droplets_stored: null
+      webdav_config:
+        blobstore_timeout: 5
+        ca_cert: |+
+          -----BEGIN CERTIFICATE-----
+          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
+          EfB82VpsxA==
+          -----END CERTIFICATE-----
+        password: openstack
+        private_endpoint: https://blobstore.service.cf.internal:4443
+        public_endpoint: http://blobstore.cf.kyland.com
+        username: admin
+    external_host: api
+    external_port: 9022
+    external_protocol: null
+    install_buildpacks:
+    - name: staticfile_buildpack
+      package: staticfile-buildpack
+    - name: java_buildpack
+      package: java-buildpack
+    - name: ruby_buildpack
+      package: ruby-buildpack
+    - name: nodejs_buildpack
+      package: nodejs-buildpack
+    - name: go_buildpack
+      package: go-buildpack
+    - name: python_buildpack
+      package: python-buildpack
+    - name: php_buildpack
+      package: php-buildpack
+    - name: binary_buildpack
+      package: binary-buildpack
+    - name: dotnet_core_buildpack
+      package: dotnet-core-buildpack
+    internal_api_password: openstack
+    internal_api_user: internal_user
+    jobs:
+      app_bits_packer:
+        timeout_in_seconds: null
+      app_events_cleanup:
+        timeout_in_seconds: null
+      app_usage_events_cleanup:
+        timeout_in_seconds: null
+      blobstore_delete:
+        timeout_in_seconds: null
+      blobstore_upload:
+        timeout_in_seconds: null
+      droplet_deletion:
+        timeout_in_seconds: null
+      droplet_upload:
+        timeout_in_seconds: null
+      generic:
+        number_of_workers: null
+      global:
+        timeout_in_seconds: 14400
+    logging_level: debug2
+    maximum_app_disk_in_mb: 2048
+    maximum_health_check_timeout: 180
+    min_cli_version: null
+    min_recommended_cli_version: null
+    minimum_candidate_stagers: null
+    mutual_tls:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFDTCCAvWgAwIBAgIBATANBgkqhkiG9w0BAQsFADAWMRQwEgYDVQQDEwtjZi1k
+        aWVnby1jYTAeFw0xNzA0MjAxMTA0MzBaFw0yNzA0MjAxMTA0MzVaMBYxFDASBgNV
+        BAMTC2NmLWRpZWdvLWNhMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA
+        3tsQLTa8SJHCBc5kMsMmoTG6IhRDEtxcNFs/ydVziDdto2+9drEzgGzKE7mCyTcd
+        FtB0zTsHbeLZi2lFD9DQFKufP6/UnHMjUy1ilqgAjh8P34SKVLpuN0j1dJ/yqYB4
+        FpcyDfKILBrCzJ2JEqQNDovwhs0DqsxQvGI3tJyw5Cnq1hs9L3OkLKMTtc1jkAN8
+        73gYX2v835nOtvbiTWgjL1k551AF1gbxGpejX5QXuOfK41/F6cJnW/v3xMCmMJgC
+        EAnVmtInT+mS93A9C/Dbz0OkSB0mDPchqHC1sbvP8CWsy+BVsrVs+C67s5eHZrVe
+        a/MELzGMI3Ig8fOWGmoHHfnFa4qwTQSYYhXS86EGFFgdn/rBewV/i48Z1mEEQcnQ
+        XvhNtYvr7sFFuKeVeaDDTg1ACDA0K+ODmC1WIJEXAgCG0ruA+A9vDrcGAEbXD7nT
+        whM7Cl7iXX9k1DcVDSinap39YQ6qdYoXjTXuF/BWSWc+KkNIH6vxkKrkQTpBOn3g
+        RxA+xKVCYyk1b67+kTjqnhvEU9CzJqSx0ztiA24hBRzsMdluIM7DfaPQEOWXdhXm
+        Sk5Oz/6grTXItX05VKAwq25F0danKqcThacXjVGYktbyMCVwvDIz90aV8iicJ/sR
+        F1Ig7RpuW4dgr3JW32+Jd1RaJf7YgheyAxXvpOgVo90CAwEAAaNmMGQwDgYDVR0P
+        AQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFCqaWMrBw7PG
+        SBJ1PSq+P3TwzAyIMB8GA1UdIwQYMBaAFCqaWMrBw7PGSBJ1PSq+P3TwzAyIMA0G
+        CSqGSIb3DQEBCwUAA4ICAQCh1SFn2c0/g/G5Ot2bnrXgka5OwucGQRrZTmJIzHnS
+        xi78Iey8tFKeoRD9G2dU+85MmjiIzleK2LnoRBz++AzfObL75qT9EyTCls6IdT1R
+        0v48+W1JLRnWbVovxmKtEVpbsqYxlZyZrc2w4NBfBT8LAp+LLX7bPphqxWR50nGH
+        J7SNJq82e9W5JZR0Styu3oFe5MJFgtsZuTpZnyAOptYrSTJHanAKz/Cb5XVQHF0n
+        FBjH2fJPxMIToGx6ydpdEesCqEbwHaY27PNu34S4joKDnPTToW8f2oW5zLHDaHg8
+        MXropBQPqdUZmQnkBNCb7/jum8FTtaFlEZOxWAUKIqXw/poj+HAeQKNsQu7ot1Gd
+        t45x7cR0nohtKX0316U8PdUChyl5aXhDMdKEVZvttbDpIbydyMFAAo6qToxyzU6J
+        k85BH+Mj2RVe480taLefx477Z50W2xQbgosNFLC/ubVngvB5zqamrsGfhBoysLt8
+        ITq/1adScxV5Szb6mfUYPEjlutSgem8Omb7YelMpFkklPz1qkuaSbdYzwLQKQhET
+        ky7w/e/wit3S1ZXU+CYPrrQaDJEHa2/fO+J160s22ClduPczY9s1PL6vuCeHE75J
+        mbhYsKi9DZwBV4yMrNVjJuEwXUD62BVseuKkTUuk4NUDaJlipzFM1D0gH6NwnAxe
+        lA==
+        -----END CERTIFICATE-----
+      private_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpAIBAAKCAQEA3y1aQQ5/f2ZHu4dSR7Ap6jWpJguS/zYOJD5zwMgvaznfWEsa
+        oJePcr5U+J2o0hrIkyMj+Xw441sO/vPxyfQbvZtZIM7sKUL899pS4ZlA4ONKB6Zr
+        2fsdl3Pb70R+n9lJ00OhAv5uIiOGsSaVasfx1/Gqm6vVfE/NvsFdol01bh8Vtp1T
+        1ZXjrw+GuAMgT5PNlm6lgHsXP3sPFayXS0SvzRM8gTgJG+RwxYOWJUxi1n6T9dtf
+        EsRidwJSFaAiUDD+pSx3RFYrJxKlSmQKK4JWLrIYz1iqaoeyQHglx+kkkFIXizFU
+        4hndNyP/UKzsVnFKrg9NsD5r0wGtxYHWJcQlXwIDAQABAoIBACIu2iIYzGKBEf+h
+        LHMagnEDIxNWtn8skmHuxuACSXEM/i6R4lQyoqAakv05eMAlpg8TVNFDu5rnOZbH
+        WoNqRk12W+Jwjy+KuSBlakhvpsZLSe1+CgrrMY8fCdLOFO764xnew+ynd8r20gyU
+        MlKWqW4/77fETACsYIEVMPhLeoGRLBBYTvpgtQH/5tHcmLOU49iC9IAN2b6Czb1g
+        tUOY9T0rLj/+hSCbAkaHg+VFc+KwBDktmz3mY57pH5ZYaGk12mRpS/ht0iD8FN87
+        cVxQpRB5Shv+RBets+FKd6t9FCfTdyNufCRjIq18vM9qvCjSBhsO3pUPQp4/baBE
+        F2dnAzECgYEA81yGMFlopoGhbo+RCEgwZI+6b1az7cY9DfnqqSWkzbfN8lteoHPy
+        q49ZvOB3q37nZihdIuCFa13z2v1+sE6b4+JTPkAAAXHHNyVpKDuGAOladkpAD1qm
+        mzv8gEDkCjPF56M2sfrtxNS6IzYdFKx2VwSG3jleHOMcRb+M2o4g2hMCgYEA6sR6
+        0mszHs+ONRWjqFIfbwJZFre4Hs3Y9Gc8OglPed/ONH3Dps3JmySsdvW8qas+QH3T
+        Z514aRBDs/VLJitzp5Uamlf99YIhTYSbyrxeBpc/zNKDkEAIyLKb9cLh0Naqgt7O
+        uxvUPEbilXTNrDfS42oojY9P6wdOiIWh9AFc8QUCgYEAjPkwEpn4cVvuc+lejnmi
+        7t4DlbOYD0ki3RHEya8wxKqQ9q/PJQuFq7Qiu7McH5An45nGOgntv8BxHo5x8RfY
+        Xi4hIpJYbn3GdT+Kpu+0NJr4+EUSztIoaQxavMDaWL6dCg4WBQvi6H6CRRt3xR4S
+        f13z8o8w4XL+Ubkgkwp6JVkCgYAoO1mM+7/79Le7EyVDsCcg3/cidIOCC+a1I4fn
+        rjbHfPoadr7zs+prwuInVL9rGCSH6sgyxoKfBqGDknK5bNLaEixH7PJhg1ZvsVz9
+        ZkB6wqq1UBIpwz9+HVWqzSXjoxX/bW1iFUfOuJsV37lrXPmv7T5b3AZnEY58yOHT
+        LfSefQKBgQC0SJz3EqVzmmEEQxlJ51/Iv2wAykVUGUphBjJw2bO4HRGO3UIhMy1S
+        E/mIvvErYXwvXFwyP824b91fHabY5UUq09jEpL9j1r8CfhWRBOGnHw3yNmBoufHj
+        1ne957llsa4CgfTYP/ki+iWZozuo2+P3WyPi8QlNICvojfqSM411qA==
+        -----END RSA PRIVATE KEY-----
+      public_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEQzCCAiugAwIBAgIQMvP10yvHE4lNWMmUbLNwXzANBgkqhkiG9w0BAQsFADAW
+        MRQwEgYDVQQDEwtjZi1kaWVnby1jYTAeFw0xNzA0MjAxMTA0MzZaFw0xOTA0MjAx
+        MTA0MzZaMDIxMDAuBgNVBAMTJ2Nsb3VkLWNvbnRyb2xsZXItbmcuc2VydmljZS5j
+        Zi5pbnRlcm5hbDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAN8tWkEO
+        f39mR7uHUkewKeo1qSYLkv82DiQ+c8DIL2s531hLGqCXj3K+VPidqNIayJMjI/l8
+        OONbDv7z8cn0G72bWSDO7ClC/PfaUuGZQODjSgema9n7HZdz2+9Efp/ZSdNDoQL+
+        biIjhrEmlWrH8dfxqpur1XxPzb7BXaJdNW4fFbadU9WV468PhrgDIE+TzZZupYB7
+        Fz97DxWsl0tEr80TPIE4CRvkcMWDliVMYtZ+k/XbXxLEYncCUhWgIlAw/qUsd0RW
+        KycSpUpkCiuCVi6yGM9YqmqHskB4JcfpJJBSF4sxVOIZ3Tcj/1Cs7FZxSq4PTbA+
+        a9MBrcWB1iXEJV8CAwEAAaNxMG8wDgYDVR0PAQH/BAQDAgO4MB0GA1UdJQQWMBQG
+        CCsGAQUFBwMBBggrBgEFBQcDAjAdBgNVHQ4EFgQUFQ3BsrJ4yjvxX787C0OqI172
+        lhEwHwYDVR0jBBgwFoAUKppYysHDs8ZIEnU9Kr4/dPDMDIgwDQYJKoZIhvcNAQEL
+        BQADggIBACwx7vBzWH9oG20vLYB9Jq93NOLnU8Sz83AcMxVvSDr9jDpwLztzj2Wy
+        Uc2Qo1j3eSS6nipVKHRi+Vraoy0lMwtc3O0ut5df7AN30oEFnjEsGAzPLxXU4gKX
+        mU8N6Mb2wQkbRgpmf6d2A3FtBOezfOcaZdUqQz1DtwvZYUHDpOI7vIshsQ5Z4Day
+        Gbv+l0RS7eV/LdKjLq/HXzz9uazOeI2VfdMV7PTFXRFYw2TuY/cErNoTLSkcoKCY
+        xum1ByLNyCBaTKedbXjwx5rvWl6plQuQiJme7lRM/kT2ai885dH1uyzR6XdOqYX8
+        Es3/hyYa7/BJ4yBPutXr8X5u5QDK5/chkz2zJPWxQe2abe6wslKA3jd/cvA4TpGb
+        zlerLu1EI6AOKR7S/wxqb0xPvRMkcBt9a++JRvxqQnDl/b6W4w4VPQostL+x3iBG
+        BlNLlOFGx4FJ9N82hMP8e5Lev7DQU1Eb+7KLZbG8vz8/CXovmwTjx1SBL83/JCDz
+        FhG+E4gjuQYusSHUL5gVE30+BJJOc/VrtUwxAYjPFbNj+ZZanpI3s26XbdIb8rLO
+        SBkvMUxiequwWEjZUTOralZi/4hJe7kWpL9cYBZyWPNy2p1t53PbhT6PNn/hB5iq
+        GqmFqO8FJq0DXRPK12a4KbsebOSpTUvlFrWNXiKc+GBjJbSqYdaW
+        -----END CERTIFICATE-----
+    newrelic:
+      capture_params: false
+      developer_mode: false
+      environment_name: openstack-cf
+      license_key: null
+      monitor_mode: false
+      transaction_tracer:
+        enabled: true
+        record_sql: obfuscated
+    packages:
+      app_package_directory_key: cf.kyland.com-cc-packages
+      blobstore_type: webdav
+      cdn: null
+      fog_aws_storage_options: null
+      fog_connection: null
+      max_package_size: 1073741824
+      max_valid_packages_stored: null
+      webdav_config:
+        blobstore_timeout: 5
+        ca_cert: |+
+          -----BEGIN CERTIFICATE-----
+          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
+          EfB82VpsxA==
+          -----END CERTIFICATE-----
+        password: openstack
+        private_endpoint: https://blobstore.service.cf.internal:4443
+        public_endpoint: http://blobstore.cf.kyland.com
+        username: admin
+    quota_definitions:
+      default:
+        memory_limit: 10240
+        non_basic_services_allowed: true
+        total_routes: 1000
+        total_service_keys: 1000
+        total_services: 100
+    rate_limiter: null
+    reserved_private_domains: null
+    resource_pool:
+      blobstore_type: webdav
+      cdn: null
+      fog_aws_storage_options: null
+      fog_connection: null
+      resource_directory_key: cf.kyland.com-cc-resources
+      webdav_config:
+        blobstore_timeout: 5
+        ca_cert: |+
+          -----BEGIN CERTIFICATE-----
+          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
+          EfB82VpsxA==
+          -----END CERTIFICATE-----
+        password: openstack
+        private_endpoint: https://blobstore.service.cf.internal:4443
+        public_endpoint: http://blobstore.cf.kyland.com
+        username: admin
+    security_event_logging:
+      enabled: null
+    security_group_definitions:
+    - name: public_networks
+      rules:
+      - destination: 0.0.0.0-9.255.255.255
+        protocol: all
+      - destination: 11.0.0.0-169.253.255.255
+        protocol: all
+      - destination: 169.255.0.0-172.15.255.255
+        protocol: all
+      - destination: 172.32.0.0-192.167.255.255
+        protocol: all
+      - destination: 192.169.0.0-255.255.255.255
+        protocol: all
+    - name: dns
+      rules:
+      - destination: 0.0.0.0/0
+        ports: "53"
+        protocol: tcp
+      - destination: 0.0.0.0/0
+        ports: "53"
+        protocol: udp
+    service_usage_events:
+      cutoff_age_in_days: 31
+    srv_api_uri: https://api.cf.kyland.com
+    stacks: null
+    staging_upload_password: openstack
+    staging_upload_user: admin
+    system_buildpacks:
+    - name: staticfile_buildpack
+      package: staticfile-buildpack
+    - name: java_buildpack
+      package: java-buildpack
+    - name: ruby_buildpack
+      package: ruby-buildpack
+    - name: nodejs_buildpack
+      package: nodejs-buildpack
+    - name: go_buildpack
+      package: go-buildpack
+    - name: python_buildpack
+      package: python-buildpack
+    - name: php_buildpack
+      package: php-buildpack
+    - name: binary_buildpack
+      package: binary-buildpack
+    - name: dotnet_core_buildpack
+      package: dotnet-core-buildpack
+    system_hostnames: null
+    thresholds:
+      api:
+        alert_if_above_mb: null
+        restart_if_above_mb: null
+        restart_if_consistently_above_mb: null
+      worker:
+        alert_if_above_mb: null
+        restart_if_above_mb: null
+        restart_if_consistently_above_mb: null
+    tls_port: null
+    user_buildpacks: []
+    users_can_select_backend: true
+    volume_services_enabled: null
+    webdav_config:
+      blobstore_timeout: 5
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFEzCCAvugAwIBAgIBATANBgkqhkiG9w0BAQsFADAZMRcwFQYDVQQDEw5jZXJ0
+        LWF1dGhvcml0eTAeFw0xNzAxMTYwMjM1NTRaFw0yNzAxMTYwMjM1NTdaMBkxFzAV
+        BgNVBAMTDmNlcnQtYXV0aG9yaXR5MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+        CgKCAgEArbOKI6ZX0hciuQMiV9R272rC7XjA1Mg5uSS5jdiIaoV8Umcz+EV7ImZW
+        M/Ttp9BxLMrl+VpaRE6aia9NhDxF4rtskDsCAy215cvqil6DEIMbI4Wf1CJIGimM
+        Q552nxcibgosvDU8V/UMuveza9DjoJv5mgYyJP6jZofV0ElhdtsB/Gv/0+TI++ks
+        a+yTeTnPp1uEDywweIkZD2PFChL7AlC7czI5J5ARxs91kTIdNXTnY+RHxLmZY1AN
+        GNA19iubyDVqTJehzRgfnp8ddah6ZXyEvVhJ7Rx4vO53j2n67HQKMvY6QQIahUFy
+        NZRVoWUVT1rE3CCRnbUOZw9yB3mkxnKlr9LlM0PC/Py1SNihAtMOHJ+QovTzJR8/
+        GwZY/8mwE1iUzBpMDXzwfLJ9MntivFSGuN9p2OiimCW/YxHyJw8otevBhlNYLX0/
+        uQbV/JEQuymPzWuXwVrT6vA/FDvWHXH5+qGLjP1uzRJeAeh7F60giyWnn5Kz6yN7
+        kY+xlrXfEp6QrOZMGXEPVmumtS4hTIEJig+EjdP/qDJO6keATsBbefSRJoUTw1hS
+        IuEg/lfKP2via1V6bMrlb6dNl04WBtJqu/W58K8+XGCztCZFoTLNtWqQHQr32/x2
+        lVamHFo4vzEYdzbX+bCjh9/lapWpwB0syr9YAavsSIrLI0+fvWECAwEAAaNmMGQw
+        DgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFLPW
+        2reUoJ8Wty2XycIAbC2EehlrMB8GA1UdIwQYMBaAFLPW2reUoJ8Wty2XycIAbC2E
+        ehlrMA0GCSqGSIb3DQEBCwUAA4ICAQBRuj1N4PZKjt31rI/q5EpZrXXtxGpySfyS
+        Wmr14AGkBydBhDngvFj2mIt9nWeMsohCbavyCiYsdSMBOnOEzam2mbUziOumjLL9
+        nqSPbJqtnawW5S+v0tH5ABqeDy1F65e549YdhDC4JHjCqe3NEpB7mQ4LZ6c1UX3F
+        yTXY8cd/xT95glFe8ObUBlN1sXkQ4sdjcnyA09N7dJ+GHzZLrtrs7n1Yf/eXFN/m
+        d+VhDUJv1YCVxoqCpkng7BTWfEB5YRe8cp5UE2MN+7v2lNQDkQFAwWZQM7RzWRM/
+        TdhpWMyCiBglvQQM7NRgKPzPM8M40UV8LkdzlqD+R8nBnoYLDzE4JtcO0y4B41Ol
+        2xM0f5jw866BzsD2WbAdG3Dwn8zJmhcoVE29q+ElnGJo/T9yZ16TYQwC+Wdj/+mf
+        yg1dlj8gddZkqQQpfon2/sy92ulFSPkyJRqid03BiZqb7JnSQ7XTmNKsNavLJnZ4
+        hkOrLGkFxHzoncKzHe8CQ/l8kS+bQGEGm6zuzgUivLskKA+v9rX5PqneD6OF/bkg
+        SHrWtoOb2Lo5tt60TJ2a/M30R+KTLq8Q2MZ6PeaNl6AsR//gCQjgnr4j4yOvDxJX
+        jpowYV1aR4+BGO3WTFB0whoL2dgEzOzvXTaRHdq4m9UFU61YPS/6lNkOEhkCyZw6
+        EfB82VpsxA==
+        -----END CERTIFICATE-----
+      password: openstack
+      private_endpoint: https://blobstore.service.cf.internal:4443
+      public_endpoint: http://blobstore.cf.kyland.com
+      username: admin
+  ccdb:
+    address: 10.0.1.129
+    databases:
+    - name: ccdb
+      tag: cc
+    db_scheme: postgres
+    port: 5524
+    roles:
+    - name: ccadmin
+      password: openstack
+      tag: admin
+  collector: null
+  consul:
+    agent:
+      domain: cf.internal
+      log_level: null
+      servers:
+        lan:
+        - 10.0.1.137
+    agent_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIEJTCCAg2gAwIBAgIQToug2EaXbIGzkDjbmh9oXzANBgkqhkiG9w0BAQsFADAT
+      MREwDwYDVQQDEwhjb25zdWxDQTAeFw0xNzAxMTYwMTU2MzlaFw0xOTAxMTYwMTU2
+      MzlaMBcxFTATBgNVBAMTDGNvbnN1bCBhZ2VudDCCASIwDQYJKoZIhvcNAQEBBQAD
+      ggEPADCCAQoCggEBAOMYXZoRUVlamxNMAesvsOgyz09avfsJXaOwq55J48qF/ocR
+      MwBeP1orN6AZv1zsR4g82lfMOufRSUOwIkl0wWb6PgBwOskEA6yP7h6GKrTTbYI5
+      sss28m/K54NXE5tequoQfWmJvUagQwfbB+rYU4WmcMv70uvQMhcTjVYzbDcH8ki+
+      dtX791s1CTB62UeUbAXhqnx/z2hSWEcEyuoU3C6QfTpcAuXLBL+zOd8pv+StT5tO
+      TV+14QkqOWPDCFB9xR5+qg2lX+NHB0zOmq5B/tD8sTTnPeBEWhT6ZfKovP0P6X5C
+      H5VKOuKXyI6W1hgyb5bPUas8XRxfPzBYic6A+McCAwEAAaNxMG8wDgYDVR0PAQH/
+      BAQDAgO4MB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAdBgNVHQ4EFgQU
+      YOWs/JZYXM+/dQk1/qJa2AuezJQwHwYDVR0jBBgwFoAUtzgI2judccP1ZnclKfrV
+      QMInWu0wDQYJKoZIhvcNAQELBQADggIBAGVwgK2NXrh+HyIto1mOOVGLtOaMA8Yt
+      PIrs1zGwDZeowIW6NdTk3w+d+whUk55PuxbfimfoYRYnAY/fjJnWO9Lv0UbhSiEc
+      JsvCDc8Vc35XjMOvRGlXctSabHuJNg112AcSMXHgPRQEX7NxVuTesAQFef3aaoPW
+      jFSmpBVZVTwtzOwrc8wrnKhplXsMLY1RveNfnMjHvd5jNLZ5BzHRSM0GZMTHUJp7
+      pyS2Z8ZBslGnZ/unYyj9XT6YihNIXr+J6fsneLm67BwhW1XZi4OlR1D0BouG3TQU
+      Y1zVFu6GcM5+Orm/zjr9EmdCt3xJDsac27+m4aEzrVavioikwgafbb25AS8Sl6Wf
+      5XD4RAb34QS1sTeFReZDe0lxzyCfR0xAltccyCRuXnHsjx/w9ikNTCWCt4XU6ArY
+      +e8TAhmtudkXkRWEGbu8z66Bef2+eh0pqcTc6nKw6vDcZkHLKy0r77miPdSzL6/8
+      sTpGEDDua4mBJw6uU6ynJ738knioZw4mftQN9Q0J3YyqxUtmQ1RhkX0WpZsbHHSH
+      D4pMCXTqqvicnVa4CCAdjxRATCBuAbb+umepyx10lRF6d6WexEwYUynLrWYrcs8B
+      MrUVeC+5q2MFs1QetLxDcp6o0OChnsKfLtY4JCxA97ek3KphXAxWR95hoWrVuCzh
+      htSFxjMNWFj6
+      -----END CERTIFICATE-----
+    agent_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpAIBAAKCAQEA4xhdmhFRWVqbE0wB6y+w6DLPT1q9+wldo7CrnknjyoX+hxEz
+      AF4/Wis3oBm/XOxHiDzaV8w659FJQ7AiSXTBZvo+AHA6yQQDrI/uHoYqtNNtgjmy
+      yzbyb8rng1cTm16q6hB9aYm9RqBDB9sH6thThaZwy/vS69AyFxONVjNsNwfySL52
+      1fv3WzUJMHrZR5RsBeGqfH/PaFJYRwTK6hTcLpB9OlwC5csEv7M53ym/5K1Pm05N
+      X7XhCSo5Y8MIUH3FHn6qDaVf40cHTM6arkH+0PyxNOc94ERaFPpl8qi8/Q/pfkIf
+      lUo64pfIjpbWGDJvls9RqzxdHF8/MFiJzoD4xwIDAQABAoIBAH2nL7Ndvas5LPEC
+      b1VYcAQqiPaZeOD8D6nQyUSuEbIvbeQCKjwb6eXUX9TgKjgaLII/WXiW8kjuTiF7
+      xZzrU0/NSp0ne/9Zj0bd5J1TEzI2gjM6BanXX1Fn7a2IcrrXKK6WLS5GHkqDxlME
+      aF8TDzO2IldboRsFeZG3Kc72aPwRCKNjGdcUDp94I16znQIzeBnM8q8b4OnVa/mw
+      EnfwwB9bb0kMJ7Azc1YFxzVD/oHsUk9emryE7TTDPzJDYmX/lbkcEGHJ3tWvLj8W
+      Dac0EAAqOUQSGkT7tS9flfTMePhGcWnuCza1T3Xy326MWpf1GXF0qSbQbYnOhJrf
+      5xIhL2ECgYEA9ql7zXDJqbcipS16k040coO8eAfIBxrJLQx+BXix/PR3YTqX12wu
+      +SibVPQ+lTqvVHHljbzEXwEXzB2YIl009bDBtyFiNJcdj75T9JBowHgrhw310vA+
+      TXkrs7A+beJebqYdt8g2XAHP/LBFSt/T1minplzdndfTFZP0JMEbtjkCgYEA67FA
+      HI1o0hW2yrJX/+aJQgC7ppLxll1G0qY+VlnTi3vQLYSXj62o9CfWlT+OauFDkwTO
+      GOuIr92Rts/MzSzOpo/hZRRuM2taDXYFplkGeUtJ/SpZrGbhpej+OigUVlQCIec2
+      JUPN8yipCM/ncS6ELKsVT0A9T0x7dNDB9v2qJv8CgYB0gWsbh1mJUxoHIOsTps25
+      BSZBH5PIX0uEfrELjo2raCD3CMDtnIi3YQm1X8QrolNsNHvzraSnJxIBdD0GhjXc
+      kod9I0SKiJIK8iAflRIVTu1oVhy1bIpQ95m/vtBOAK0P4GCLDQM4BBckSHICQqSB
+      Ul9Vgemfg3CNcZvQvHGFaQKBgQCq+fxeOh8ON/5QcKvx0ZVEsi9umS50O9pCuaKD
+      FcqmZv0P6B3idsIXzEaYInD4C83vew7feQ3BNmScT4ZsWNLYdYu2velrl7bOCQ30
+      LKTLnNhhtTU0IbYTmz/BhI2sSmj5mzbmNZfTi22EHP3yVyI/HSTqRtmzCvKMPVxY
+      BpBGlQKBgQCBbEUNwBLK8PkBMpLNg5YdNsE5H1GBrR/SWjN6LHUZxEGU31mji4l+
+      wZAdDPD6tQ7GHOyc6tt6mXIjoA+pXFmbwUaX++cwd/dLNz6KDDAcMSZWpP9A8Coi
+      EqybsMtOg+it7cAXoquI3yaQLkevlQEUz1UlEwZawORRABb8w3bkDA==
+      -----END RSA PRIVATE KEY-----
+    ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIFBzCCAu+gAwIBAgIBATANBgkqhkiG9w0BAQsFADATMREwDwYDVQQDEwhjb25z
+      dWxDQTAeFw0xNzAxMTYwMTU2MzNaFw0yNzAxMTYwMTU2MzdaMBMxETAPBgNVBAMT
+      CGNvbnN1bENBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEAwGcAxrg3
+      QnoLHZV1EdZBb1A2WfLXaUXnhVYyTEo8YpBBJLxN2Fv4LmXd6H+qQ5osg9jewQ9V
+      jvF2i7/thoYnupb/aphmBWnRHqHOQSa83l/pw1X/T9FSz4lqnbdNGgOQaRnQaf98
+      lKMSrr0ewr/nx+RDpPRMof7vzdovZi4leXcxLcnT0XNra6xVVhEI9MhuHEJOmeb7
+      yKx/lC49ENb19YeT9h2VFKqxHPkJ2aIZjOUxibl63wxhpTN3isgoMWMawWCVd2OS
+      4yudJDP9wxlF+EmsADPhel8Oyq52EvTivBIY3DFzYnoUlpE3QCOzNVpztIVn5EBw
+      upoaaxZXnouXQLEOZMXVr6uk3r+Xod2gYDaykNNf4nIz6pmDOe2ouPOLCV9mC9Zz
+      t7TMpTu9dCG4NaxKeGbb4BYFcrGtue/5Ft5AgOxzNLw2oex70lRnmwrq/RglXNq+
+      IrzTidl+0zgrVhG72OrwTeJeONO6UV11GxFCvCY9yxww/7zEICj47xnu+mWzNLhr
+      d0onEavw+VOXXQXQZcC09nPEBMsthWm9KMoDNoI8/xQPU/LznDiuKYboDwCvprtS
+      CO/S2l7nBsi8xyLYEPg7asIxvhzgOamre1Eae92dK5TBx7GmB18WU+zu1K1eaU2q
+      KBAfU9cNcQxzNz/JsyViN9nsJYiywcinr/sCAwEAAaNmMGQwDgYDVR0PAQH/BAQD
+      AgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFLc4CNo7nXHD9WZ3JSn6
+      1UDCJ1rtMB8GA1UdIwQYMBaAFLc4CNo7nXHD9WZ3JSn61UDCJ1rtMA0GCSqGSIb3
+      DQEBCwUAA4ICAQCqkYogdJDnLoOFsO+xWBbzUJDZIegiLl1acdyBmwUzgdFFVeBM
+      +GdASUIFZG5PSI8HcTp1rQPgU18AciywuAvtVvhZY0VJXUQu4keRO+sXZ7L5k1cS
+      FLcpim+K15xS+4yCEBQon45NsTF3inDz/yQ0/mmTtXFMe2UcJ2F9lzin9Xftp87K
+      hy/R/MHEjzxbMmozqRr8a93otKgMCwjWwAccXGC/NFghfUmKmwQEkFHfKzWVF1hl
+      tAB111+rR6lVK8RCHySQwnUxKXqudgmAFiw2eBEiZL4so/wsOSdX6cPCWUX5nz9P
+      n0mVYM7jK+mXsHpeM/tK5WXfwjxN1SVuUKxQWgPVpA0xDMT70fDr7MjHoQwPvwpU
+      XAQ5W1T9DLwzQApno8sZUt6JTjb3OHSCGmLgpnefFr0VMfflij0Twgcqg23HV0Ak
+      ew4Tiy3ZbnB0XocXOnt0XaiiGBnQ2nwf3RYHEY3t2Cx6Q5jz9nNMyI1BAdJMJAZQ
+      A4gpoa5E03Wc8+ZSrIPEbLJp8Jc9y5sQmFXZGRUCJ5qt9JLlvPaMlkAA0stUz2fO
+      tFVpQDttu697fpms1YfB9e20MwCQWx+Y1uyRYQ0VRyBoUguXfow2b7wcS8QtuAHt
+      fnRGunokvY8UVJVOhIHdDJKrV7P0F4nWe+st9JxmEH/I8KJmKUuFtv1F+Q==
+      -----END CERTIFICATE-----
+    dns_config: null
+    encrypt_keys:
+    - openstack
+    server_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIELzCCAhegAwIBAgIQZaVPK9tC1YR5e85twkQVqzANBgkqhkiG9w0BAQsFADAT
+      MREwDwYDVQQDEwhjb25zdWxDQTAeFw0xNzAxMTYwMTU2MzhaFw0xOTAxMTYwMTU2
+      MzhaMCExHzAdBgNVBAMTFnNlcnZlci5kYzEuY2YuaW50ZXJuYWwwggEiMA0GCSqG
+      SIb3DQEBAQUAA4IBDwAwggEKAoIBAQCpgzfraVO121QDteaoHHAmHaitTslM8Y5+
+      BY8EYqlHftj6T9BW76QUYC5nrr5RIjlK28E1AhOctTpBA/ZGQw1XugOU/IjAWPUh
+      cZ29XJt8d5dIen0DdL59ym8VVYKcDse9xFZ05KwqgdZWKyelXbFI1aihTOkLehvy
+      HeMTPUCSF9X6PGoUZXvN4mObl8wtK44xF1cdD9YI/S4mbg2yVR77WrJE32ta96up
+      TgtvdgYfpbZ/Aldl7BRKdJEZTKwe85BD7Dx/l4uaKPdI5a2Sb1cjmWFK3XVm6Uf5
+      c767wsjTChcSNJDj4IDUAxe77pfwqT5PE906idm2t5nXCdZ2nXDvAgMBAAGjcTBv
+      MA4GA1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIw
+      HQYDVR0OBBYEFBC448wQHfYI07AEUTdOwIyapc14MB8GA1UdIwQYMBaAFLc4CNo7
+      nXHD9WZ3JSn61UDCJ1rtMA0GCSqGSIb3DQEBCwUAA4ICAQC2kZxyiH/ZQxy+aFSQ
+      90df4w7BsT0s5iGYFh4nk4C7g1QfxzqjI0vZqwteVNCjm0JHXgkbhJE6Z0Z44Yu6
+      PDo+9z2JQAkuKp6SVcrGnYiqu6x3lnj5d9FJRi8wcMzlmMeU0WQ1RYO/rFNsBrCx
+      B0ny99imBFev/2Pwv5xLVW9rtp7+pEw78lExPm+97WwvLIsTm4ro/FcyQd7fvQCf
+      yejDS5I0kLYaIXad0+jwZylR2FSZrXDrNhlUNNEXhgrh9tpOrSn8YsjkQyJ9dITd
+      PHPIh5lZcj8T1dlmoj7elKDDrdyeZIYqmXopc8XWJNXrxDVr+APmaikWN3P2LTPe
+      88n9DQmtk01O5f05iTyOx2utOSGVQZcBtKISlq4Cwd2JcMMooautOcToBjx/eoMp
+      LHs2OApJak2pAufJnzXlsa/3oCggzMHnFmOhpnBvF1PDgnLWOSUHyVPUOo8Xzv3u
+      6lA0l+xS2uajKsx3TtFRb/jujpHpqfJDVUVUwNgvg3EKc7jSpDsX4fsaU0CqCKu9
+      ytCpYTlCJfw/Gx3Z9DxDoJcv5poG5fK+VGFZMiWmSfl1wN6cYsAW9kOAvVLw36/K
+      XwAdlQwOYosEn7696tSAt/SwP0tWOxnYjqwXSCREFeq+RGirbnG6LVyxCNB3J11F
+      FPjMFXMJFXbHOhVUsPVbe6TZTQ==
+      -----END CERTIFICATE-----
+    server_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEogIBAAKCAQEAqYM362lTtdtUA7XmqBxwJh2orU7JTPGOfgWPBGKpR37Y+k/Q
+      Vu+kFGAuZ66+USI5StvBNQITnLU6QQP2RkMNV7oDlPyIwFj1IXGdvVybfHeXSHp9
+      A3S+fcpvFVWCnA7HvcRWdOSsKoHWVisnpV2xSNWooUzpC3ob8h3jEz1AkhfV+jxq
+      FGV7zeJjm5fMLSuOMRdXHQ/WCP0uJm4NslUe+1qyRN9rWverqU4Lb3YGH6W2fwJX
+      ZewUSnSRGUysHvOQQ+w8f5eLmij3SOWtkm9XI5lhSt11ZulH+XO+u8LI0woXEjSQ
+      4+CA1AMXu+6X8Kk+TxPdOonZtreZ1wnWdp1w7wIDAQABAoIBAA686+W52J9dHGbe
+      L9m57z5BIeM/kFzyO5NVZGPbOCCRNMg+nDySxU9INYCqPr3LHfQWOywirBXZ4+C3
+      OXhOaCCSebFAa5tdoKJxwGcwYAxoUWzpyWi9g7poGVRfhOWQm2kyYtny780aUMpZ
+      Ii9MgBd3DBxKFZD74uYgFxgbITwSVjmI6JWuoHDDGaucligWAwryYxfQEF5+EEQr
+      iUjOKUcYgGJ6BJomOfvoTthWKsVcSg1nqqcOpvbdCTCogTx23jybmyq9O9RhjOwo
+      2ubJ4ic396bJRcvx9vCZ5wZkFKlb5XkoyOeYvmyT00EF6cKaM3GN7OlfkPB5w8vV
+      kBp0cxECgYEA1iIO4iyVnf6s0uDXE+ti0NzMEZxdB4h/1ya3Slw/m6VVoTJl5FCU
+      b4CgaqsuWgLezaP8ZeiXnkHrDyTexWBXwYAKmlB3C5bX5m5WgcvSS0983DlyxeO0
+      HXB0n7ohwNmdKKEZEprdGcON7jbePEUNzuNIV1m4Pqt2AvWyitdHz+MCgYEAyqfI
+      y/1psc6w1BbvAYygbu6DQAM1Fv2jw5/Yqc1CE/KmHLWiohRqDt2LoOrfY7WqF5gu
+      00PxcE3n8ajfwPYij3Cug/oYByx/pIAVjEwatmpvavnVOo4XS06kYh2dTL1JZp8x
+      JU9/rDGxdpQEdj6dDPMlia8EXDuRMI1atnXi0IUCgYATU5GaUkHSt7irc8WVs6oA
+      hd0ZPc6brnMzXPgwCvFmv95hpSXTHH65LZfM6NRPJXEsiD9whzSgAP0RKde9Yruo
+      6ECMuvRzpFKqJo1CO74oM+1mBv1X5PxNp+euvuLq//kSQK/9oOKRv7egp20ZbXYY
+      lSTjVWKurVUCYWCS7Wk61wKBgF4Ci7Glsxxa58jbgrBTTjFnz9coJb6ulwOu6VGL
+      +HVMgSacU/+gPLr8p0NU8aBNq8QaQs6anCwe19RRJMtc4xdrjGmI4RCi4eurx1M4
+      EsRAh8M2dmYdeEzlBHjHiCsLPDuw6ZmHUZDN1KdPbupzjWNugCFo4TrwHyBI0qYF
+      9dwJAoGAbme2TuGL8tJMlneBrX5ZeJXEoMbIlvELSQK66t4VD9xeOvNa+k7nhFcN
+      8NfhyXWTcg5I+vYcOAtXy+Dw+qn1IOB51GxvsNGsJqL4x97OASDNa7jOChYBB7ZQ
+      RgmQbDUmn+VWoO7N1MBoH2fuQrESeXoW8H16YTOx37Jpi/Na9Qs=
+      -----END RSA PRIVATE KEY-----
+  databases:
+    additional_config: null
+    address: 10.0.1.129
+    collect_statement_statistics: null
+    databases:
+    - citext: true
+      name: ccdb
+      tag: cc
+    - citext: true
+      name: uaadb
+      tag: uaa
+    - citext: false
+      name: diego
+      tag: diego
+    db_scheme: postgres
+    port: 5524
+    roles:
+    - name: ccadmin
+      password: openstack
+      tag: admin
+    - name: uaaadmin
+      password: openstack
+      tag: admin
+    - name: diego
+      password: openstack
+      tag: admin
+  dea_next:
+    advertise_interval_in_seconds: 5
+    allow_host_access: null
+    allow_networks: null
+    ca_cert: null
+    client_cert: null
+    client_key: null
+    default_health_check_timeout: 60
+    deny_networks: null
+    directory_server_protocol: https
+    disk_mb: 20480
+    disk_overcommit_factor: null
+    enable_ssl: false
+    evacuation_bail_out_time_in_seconds: 600
+    heartbeat_interval_in_seconds: 10
+    instance_bandwidth_limit: null
+    instance_disk_inode_limit: 200000
+    kernel_network_tuning_enabled: true
+    logging_level: debug
+    memory_mb: 4096
+    memory_overcommit_factor: null
+    mtu: null
+    post_setup_hook: null
+    rlimit_core: 0
+    server_cert: null
+    server_key: null
+    staging_bandwidth_limit: null
+    staging_disk_inode_limit: 200000
+    staging_disk_limit_mb: 4096
+    staging_memory_limit_mb: 1024
+  description: null
+  disk_quota_enabled: true
+  doppler:
+    blacklisted_syslog_ranges: null
+    debug: false
+    etcd:
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+    maxRetainedLogMessages: 100
+    message_drain_buffer_size: null
+    outgoing_port: 8081
+    port: 4443
+    tls:
+      enable: null
+      port: null
+      server_cert: null
+      server_key: null
+    unmarshaller_count: 5
+    zone: null
+  doppler_endpoint:
+    shared_secret: openstack
+  dropsonde:
+    enabled: true
+  etcd:
+    advertise_urls_dns_suffix: cf-etcd.service.cf.internal
+    ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIFAzCCAuugAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDEwZldGNk
+      Q0EwHhcNMTcwMTE2MDI0MDIyWhcNMjcwMTE2MDI0MDI4WjARMQ8wDQYDVQQDEwZl
+      dGNkQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC/5KQDFlOT9ETM
+      bchOBdgssqJ4F8SD95kpL/g68uafWeqzdO8HjXKnO4EvgH0JnLS8JsdDveVt8GvI
+      scIvu3QfuNAVQEg3ZsEQ4STY8oNsRIJYeJv/IP7tUfynUJNzOqHvPXQTQkLMxkKH
+      aecwTcysT6LGAClES1yihWskBEMp/yAlKSUWvTn1p5PiSr4LdFnQHDm1z82TlA+u
+      /O+bxNdpugIKpT6reTIAYTNLF5V/ldgFuKN89+C3H7RbnZi9DD1wKQBU9yB6G+ws
+      6ZWMIjyKJhC6rLbzoz7AWMXQcLKr71lvgh/2K+BLr/k1izTn5i+SAxYCyZ9ywQB7
+      VksyaWwHR+Ogfrgd3RZ2NtUj8Fe8zH5ZlQZwEpAL83qH6ei7f8CsmQxWkn7nnsDo
+      /oqXU0ibx6wCg/+Ii6lsO8yHEGH1ZJ4vPwIJ0jlJOoPyrFo3G9xekvuAEAKa9oTK
+      GdF0MFiZVjQFNRkcx9IeROuYON9aWq5ibQlytYB4YRdGoWkU4xZgiWdAdUGrFIkZ
+      cdxyhPSjo3AGoXPFnrnWP9l1WBUMD86pCsP/azWodWexyNjUcJYXbhNQxDmJXTr9
+      T4t1hZ4H31Te79HAvGrEyeB15VBg7uDfcWsCNSNXF1hvLvA6V7oe8YpnM3A3zHzL
+      CTp0XUSfStUwLSl356GtmXWb9Lo8iQIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYw
+      EgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUiqjAQdN2sftMbFeMS98bwQP3
+      FocwHwYDVR0jBBgwFoAUiqjAQdN2sftMbFeMS98bwQP3FocwDQYJKoZIhvcNAQEL
+      BQADggIBAFDH9fjA03iGjTdK5WdqoMzZZrIMZpsZ7YNUzPbxCURneo0kfeWxAHDH
+      pwfcLVbpXXS4VPSXkwR2znGYKkXawbmmaiAIMdeiV9LlJFLsE3FkhHB2ENoByIgR
+      Xs3osrGLm9m+hsG1w4+uv3fO3HmQ5wDbwSbsJM8c6Otedf5MK0rZjpxypuvqkvk2
+      YwbPg3WaBddLILnJz5+YGMGlwuaGKbbzdiitpEDRliuUgueSfJsUemJRGiSL00sh
+      22W9MXNB15NzesEDEKF7/keUthQT86diq1gBuyTX+MGeFOy8PsB2mRjeje6THjVd
+      xhVxgc1CZIu3s6Eb12aHkemIAMD7XrQc5TP3rIkgrOiEALiajWTyGW1sU884tcps
+      rwrUK4ly3bbpZAIeeSuk9wQd5o8nG7nNR65XHtKRxqGhl8Epyk8DB0Hn9Wp4VB0J
+      Wk8Znt4A8PsimXwmUrJCA75gJuq7tsxW/3f4tGOgw7sJFvgTePj20jIZd9nva7OG
+      hcrWZvYxXud3keqcDJ0fJBiudMNQHJO30FmRNdJOiipWY396fFjPRFgjd473JHpe
+      S4+9yRotwqPa48nd20rytoJctyRQ9vvfLNbzr/KuBE9bDA9jnDXH7Z46S+9FbHhy
+      BTVUDbZDpQWfdXe2l86VwWjRK9obrqKAJ5INhiYVcOHmN+NQ1Ja8
+      -----END CERTIFICATE-----
+    client_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+      MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+      WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+      MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+      gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+      Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+      Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+      odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+      b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+      A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+      F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+      hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+      K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+      +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+      fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+      gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+      Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+      b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+      DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+      rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+      hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+      XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+      K+oCipQ=
+      -----END CERTIFICATE-----
+    client_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+      WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+      t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+      dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+      Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+      FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+      Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+      q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+      o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+      VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+      KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+      r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+      BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+      OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+      rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+      pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+      +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+      LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+      KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+      OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+      TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+      iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+      QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+      2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+      KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+      -----END RSA PRIVATE KEY-----
+    cluster:
+    - instances: 1
+      name: etcd_z1
+    - instances: 0
+      name: etcd_z2
+    machines:
+    - 10.0.1.133
+    peer_ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIFAzCCAuugAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDEwZwZWVy
+      Q0EwHhcNMTcwMTE2MDI0MDI5WhcNMjcwMTE2MDI0MDM4WjARMQ8wDQYDVQQDEwZw
+      ZWVyQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQCgVFliNYYy6x9r
+      xzE9dBHrW+Xjaoa1bJvacGCmCFYuTN5hmoN7tKR+6rvgl7V6z6T68iCoLuwJLQCh
+      Nu42d00zqmImUills3u3ncodBuHtzK46y8/m2eEe7LAuS17ZRe0Xv/JAb6b84WEv
+      wLot4h8xIkvKtYg1BpasndfR0vPYC0lzASt4B278GrErxhzHe7c8S/qQCcNQJOEE
+      0mngJtco9sNOF/cYt0pLzkSgSSBGTv+ORbuf0HUU83ViWXU5Koeqy3K6CE+jeKmu
+      +f4IjSp+FcjZTQLaF2sUDxN5cHBSaPGRt9+sMjir1KEjxNkOZk+EPeL+R8P2wDy1
+      elTx8EcHpHqqUG3seYJSkgKZx69c0c9AVzxr8KwONu2lDc3jvpNBrvMWm5ZpfzIV
+      1ZsDODxVQsfPAOwD5jWh8Nefv13bcWN+OV3PxDdmRzPzam1HuISH9nS6A9tLwTpn
+      FGN6eCj/YvJXp6g+O/KTBxED2ViqOf3OxE4SlMnSO5bGP2YM4md10uM7sJ8x87gh
+      YgmZgJnty6+JVVt+INSiYEiRI2W6TsRAyxgasBAaENak5HMobTQlXCiROZqIdimF
+      X3IZOYZvYe9uapcPcIGM8Aq9nFwi+8Vp2+L2G5QiCKDv0Fjx+wI0SYxn+V/TowAM
+      KEGM2+7bzBXCetkh4Ld8nasvmP5powIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYw
+      EgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQU6AEAccPFf4cm503Rk/5+FDTU
+      S88wHwYDVR0jBBgwFoAU6AEAccPFf4cm503Rk/5+FDTUS88wDQYJKoZIhvcNAQEL
+      BQADggIBAJzXK7NKybG1EJBgvJJ6n0llzAL5dha7/wFpR/9rdtmdr4VJQkWCB5QI
+      bZoFDf1k8ORC6pKVnGilG3hH1HMY3x3hE28eteIneCPNKeBwQsDw3t6WWR4E9F4o
+      O9q1mCdYfmsBRQVV4nNSJ372wns4IIyzTLS+XC2935V3SU7m/2PH3g3e2Sxl1wbz
+      GdOBvvN4pFp//RXP3kIEiBm2bNLEsTKgCKvu6gOIfG+e5Utxv/k+7p1Nr9Z3Juiz
+      mldoGPjyzIbFPeDd/xZmOMaUTUHRIfRt9IZB4MxF5XJdPdR71kLUgUUbrzQ1rFlK
+      HA34HCfx35SV3FeAzUJZDbgFV4Luy9o1viTOAUNpISftumzMriaekPfrQ4EoWnVp
+      IABzHMeQJ7GVIodHnWEqiF2lLTRM9plzmrGd67O5CPhqlpYGAL5fymnO6mgCb3lL
+      K3+pdUXB1jI5qPfukg5mPkLbi44idauDdX8IHfE6THevoNjHrZb6HkaCPsOmtXS8
+      3O5c21xrQFQ5g+tYBopH6MK6LGHCGYtFQ7YcOitB4pr6ns9OTsJ9SHOCR5/FcN+R
+      BezBfBUydY6oC8jf3biU9DuoKkGF43APd+pHtL1fHP4K52iA+ffp8+neq/6MD2n0
+      dF3DuyIdASZuW/MG51yVD5RseV2+n2WLzzuLSvU1+RNRNphYk9sf
+      -----END CERTIFICATE-----
+    peer_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIEfDCCAmSgAwIBAgIRAL8qzh/mFs1gwOJeL06WeDcwDQYJKoZIhvcNAQELBQAw
+      ETEPMA0GA1UEAxMGcGVlckNBMB4XDTE3MDExNjAyNDAzOVoXDTE5MDExNjAyNDAz
+      OVowJjEkMCIGA1UEAxMbY2YtZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjAN
+      BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA2Xx8MYlUyD664TPH8GGvMAlRx7WI
+      rjix9YG/z6+pf5lvmv/e4v/VhXaQirrUbqXbTL1PSXynWoVPW5gO2Sq9Hz+qxxPH
+      WyISodmiz0vmVGrumHUOAttU1XfPdwNsnm7b6j7mYtTo9Lm8AavpURCxMcny03Nl
+      /zI/AxsrQZk+90yIjftQIkMKS/KA+WSukCsBLcmyOq0yqcEzHqYSkwRv9/zA+Lt1
+      wsFXIWZQxD5bPONS4frJqlk1RKezbYAqNIWUD5dI8gyMec0WZCh6Auxa90ulfH2l
+      uOUksOzm34pNiFB+1nZJpi7NnOGI2Kq1h+1Szcz9fVefaZ/f8MwnPBJWEwIDAQAB
+      o4G5MIG2MA4GA1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYB
+      BQUHAwIwHQYDVR0OBBYEFL0CEZMNeQzOiofzC97N1CAhdHOdMB8GA1UdIwQYMBaA
+      FOgBAHHDxX+HJudN0ZP+fhQ01EvPMEUGA1UdEQQ+MDyCHSouY2YtZXRjZC5zZXJ2
+      aWNlLmNmLmludGVybmFsghtjZi1ldGNkLnNlcnZpY2UuY2YuaW50ZXJuYWwwDQYJ
+      KoZIhvcNAQELBQADggIBAKAXqHavTYe6VOmk1Q1D6kjB8zKIQ1fEEq/Kghy702WK
+      SHWTX0FiyMmKiMZQ/Lo56hXIgmzQnr5NntsS7kgU5IJSNaNvO7rs5uj8N8vYH2ys
+      HKujBVnCrhQ4IVXklAwLdIV5qi+Gn5aF1uXxmj6SQKsMgoH98M63AAUYOQPXWVvh
+      Es34JBOXuST686lold2/eL2ryaSnlOshytg9IVElZhb8PNeUkwKr8kTdq6wQuN7a
+      zdBRcKesoHEj41g9HZPWZ+wUQLNyql6OLGLrX3mRT1AIDYcGgO9qmxvLIrEBwhN+
+      0PMqn9fJAu8RrVbQIMCGHygYWHj7mopayKjYaDI1OshemyprAPjH14D25tAoc0Hi
+      KAnUSlw4NZ/ijUE7tHVIZ62a6rFPGRYlT65tdoXHmOfkoZXHTAXQIQdfMmiknvZ6
+      /IzFhlPwe/UowEavRbRZAUy9BIo5nju02cldoeKkQ4NZW1/oKtbl86zqtiDv351W
+      8HflJWPtl4TWyzzCD+6Dcf5FTrXixuVMFHXjLHi2nW3FvW4JVF62Alo4ySl47rvb
+      kV7RDySPrVEPjiEbd7HF1caA3K5I9Sc6E53fxGBMFOiZmUzosTu+cB09tfMIuyMR
+      a74u8cWlh7CVkvA4h/+1qaD3dlcPi4PF4Y2dwlhDltQWzwnjk+VX5AR1rkHBazpu
+      -----END CERTIFICATE-----
+    peer_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEA2Xx8MYlUyD664TPH8GGvMAlRx7WIrjix9YG/z6+pf5lvmv/e
+      4v/VhXaQirrUbqXbTL1PSXynWoVPW5gO2Sq9Hz+qxxPHWyISodmiz0vmVGrumHUO
+      AttU1XfPdwNsnm7b6j7mYtTo9Lm8AavpURCxMcny03Nl/zI/AxsrQZk+90yIjftQ
+      IkMKS/KA+WSukCsBLcmyOq0yqcEzHqYSkwRv9/zA+Lt1wsFXIWZQxD5bPONS4frJ
+      qlk1RKezbYAqNIWUD5dI8gyMec0WZCh6Auxa90ulfH2luOUksOzm34pNiFB+1nZJ
+      pi7NnOGI2Kq1h+1Szcz9fVefaZ/f8MwnPBJWEwIDAQABAoIBAGQ+/P/YTTv/riQf
+      ugkS/a0mnotvIZEskNqY89DHJ1mpX8gSKKp5QfJCtF09wK0/xdWZbPJygrE2wV12
+      uWFgUcwVjKI2e62GBxCTQHhMg95la5TaX5rxfijnELnK2kYs0zElzQvBF5+1/PLI
+      SsMS7poEe+j7SAhZILJN06JpAJz70A1MpLTMXx9ySt2PhwCxALm6gNfqxBZDo8uk
+      tkYm9+3ohPVh+06JNHJBHJLrFBUbWybNRsNo9GehOx6nBTCiGG6jUN66SkXpq2+0
+      TGgDYLGnQTCWynzdxfJfsLACVoMCnYU9tE0owohy6oGWY6fuiq+TF1pX9CQ/NCCi
+      KH/F8AECgYEA+mK+i7NaPSFzipl2AipPbwhOYaTJ3Y0JuE0No/6S/B94szdipO9j
+      EUQNHqlWEU4/jAGOklAMB8NSZcwshsvMtgD/Vg0oedbHdyetg7piqFos4oDijDEL
+      NsJnE38Ws/DR+I+jQdaL4CahNA7QGrCtJtP9R4JUxenNAN0WtYLYlM0CgYEA3lzk
+      eqiHAWei8Vvpe3JmaAWFqnaaasxhSvXcwTMcUPT8kmIaB7yM5EaoQaoHankVzv5z
+      9zYZuMEmXVwn8dpJmqk0suB1FM34uq6m7V2OgVnMbraFclAwJJMVzLw49+tZXhMR
+      dUdBKuAaecRsMAHxpCCcIHFjz8TP8/WwfEiPll8CgYB2l8iKoLOQGsUAE7mqQuIG
+      xBdj9kpKrp+49H4Oe+iglEN2FziYyG3S4rmYGTqTzc0Zgi9GK7XXA3OGldNNMUBP
+      wF8wIeFW/BzT2i48I07RUIzL56HmJuCZ2jA6MsrNBbZeFaKM75Km44UdBBsbWS1a
+      I7RmZ1vBtgCMdStpY4UzzQKBgH6nqJhY/7UEI+KYOLBQ5BWh95W1wpTMXyqESj5d
+      b2aJdIeoiy0W76VivZnRUDIMUCi79K+9x/7dPY313Oa8MCqA8HxmrymvfFpQ+tG+
+      9VmmHXR+UBphpFpg0QzxtP05t4iHEe2cLXlPdqUfBYR+xvV2gZdVHsYMU2qg6eqQ
+      pgC/AoGBAOLvT5/JbvLsC2zPXGv7mqlOtU6eCbrED7zH/5/obua7V7KYB56jvO9O
+      yCDkVq8E+tGQVnaTJyLm2vwV2CkF+BSaQWD2ZcLu/y8UFRyxlME/rT0OBqhA9vXY
+      MWZmT6C8Kr/jqrBb91JPFNq0pqiNG810OYbVUlKKT4wfYBlhm//5
+      -----END RSA PRIVATE KEY-----
+    peer_require_ssl: true
+    require_ssl: true
+    server_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIEfDCCAmSgAwIBAgIRAL6/CAz8aZgG7LMxfZFuMIwwDQYJKoZIhvcNAQELBQAw
+      ETEPMA0GA1UEAxMGZXRjZENBMB4XDTE3MDExNjAyNDAyOFoXDTE5MDExNjAyNDAy
+      OFowJjEkMCIGA1UEAxMbY2YtZXRjZC5zZXJ2aWNlLmNmLmludGVybmFsMIIBIjAN
+      BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8SqocY8PkIiqAMmXg576vPlYTcSD
+      ThxTxJx3r6hGfdVK4gKmjkgztg5oAIOF6FQFnHAjI65N2GDUHtC/+5eH/ck5z3fV
+      qnuiynUbdHx7DwceepF52Ed8gnjJwbHkm5KnoYTaaruE972XSO5wduzeOPUbmClq
+      AbcH4SbJiiqM4zCownI/U2S6AGQnoaGkfgHK0/oZ/yos83JDqU/rIYAZsHawGgLD
+      /Cg24992ZlbU/pFlrr8X8rFFAwHZMW+B2dQgfbeWC/vXniz2dxVAwNijnGdd/Fyw
+      Gc7XyQKEF4J1EE5eE4/Dly8+WeLTpkJ2puOMKTLNQpxQoy3b0xCL1YZ/aQIDAQAB
+      o4G5MIG2MA4GA1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYB
+      BQUHAwIwHQYDVR0OBBYEFBnzyMnkBfRmQDcPiU0BK1FM41akMB8GA1UdIwQYMBaA
+      FIqowEHTdrH7TGxXjEvfG8ED9xaHMEUGA1UdEQQ+MDyCHSouY2YtZXRjZC5zZXJ2
+      aWNlLmNmLmludGVybmFsghtjZi1ldGNkLnNlcnZpY2UuY2YuaW50ZXJuYWwwDQYJ
+      KoZIhvcNAQELBQADggIBADaXH3Sx05G3a7sb5Kxf6wNAChHnu637hX+MvsbW32eF
+      6HNLNyUI71scixTHP2K4ROR71rxKn3HXsb9mXU4bhJnEmUQMOJMFGtzonE71JgFE
+      Wh+XSrSNq8Cx1lyxppyUlBEmEXhXARU8O30zoOiNscBvqN4gjm2ycn3o3i8+35zP
+      fn4vxKLew99iZ9JX+rQZKGno5mBgi6K4Ub9xsfdtCo8oJYOhul+hqyVkjrlMIB9a
+      0rwp321jltg67si4Al2IaYuGZGZAqnwJPjVLSke/Ioiu8FTW1L0y9UPdK+MpZCuG
+      30FpCrbXkX5rvakqNATVKWBdjdttbNgktJZPfWoJ8Hnph9dBAu0Fbyxww9eecfjp
+      UCozIQTnFONRBYQhIfPUunKc1oTH3w5I0mX5zxA6qLU9yyQTcqIyzrJrENvb9/aN
+      dMN+O4DpdwvrO3x1KQr6VHxKyxlyxkWiNzYUKasxozVSryt3rdkjSBpMrUDmPbLv
+      GzOY8mt0fOZYLlpGU2B7Pfj6+StELrDbyLDRspsQ2PHR7ONF+YjohyauszrI/RmK
+      RYI2iWbbNQo9/OXseTJ3TaQM238Btj8YrcmMJGU9BEH69AIgorErEifFJAMdeT4U
+      kYxY0we7vJzZH37/vLNdwT4nYYKb5RCf3OSJ6SqDmoZMNUGmpySnI3xhGihYYQX6
+      -----END CERTIFICATE-----
+    server_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEA8SqocY8PkIiqAMmXg576vPlYTcSDThxTxJx3r6hGfdVK4gKm
+      jkgztg5oAIOF6FQFnHAjI65N2GDUHtC/+5eH/ck5z3fVqnuiynUbdHx7DwceepF5
+      2Ed8gnjJwbHkm5KnoYTaaruE972XSO5wduzeOPUbmClqAbcH4SbJiiqM4zCownI/
+      U2S6AGQnoaGkfgHK0/oZ/yos83JDqU/rIYAZsHawGgLD/Cg24992ZlbU/pFlrr8X
+      8rFFAwHZMW+B2dQgfbeWC/vXniz2dxVAwNijnGdd/FywGc7XyQKEF4J1EE5eE4/D
+      ly8+WeLTpkJ2puOMKTLNQpxQoy3b0xCL1YZ/aQIDAQABAoIBAQDIMuVJ/7yn+wtF
+      RBQnC16SaVtIk4181j8jw9AHXeXGp71WCWVCT+W9iBAF/Si4SKevydch05yDtz3f
+      puL4dD5MCzOWaqBQufnVn4l/FacCPqKqlQFU7WMK3EKALLDeBMxrZOH8IFatYhGo
+      VWe/EbsYBUE2+4ooikxcN9que8wg+7MxhB6Zi6npjoZoO/OiYUCNyWfxN0hYMANn
+      G2KfgzE8g5sujgypSJrR5YEMq3o6xyV4Nxc7KJmhgdSJ5FoX0KQOqdb3pa+ACtzd
+      iTBuV17STLrpc1oLcjTGU6lNO6Eto1vR5QSNM/MOAZIe3RRChEWb5Zz3MOpK0EMU
+      rJO5fZpBAoGBAPI6/liSaoz/OBrd/Njal88IincaO08ydmglwDc8GxgMsreuFVU5
+      PkMjf8wQR3NJMFNgRT0lUbnAwaC7m4nNniVWmRKFt2p3t0kYoGpxMYR8noNjnBTY
+      z4eBxQrqEQVMgN+N2MokK0IK6XN3H7JGeklSYkC0BE/nnWseEaOmoaJdAoGBAP7g
+      Lv4yyLuJ+ChJvYwVdAVSvUAtuNIMiMMRbfcdeduZ/it+plOHZG1n8htL5MYFGnMc
+      od+I6vmHH6YLSlw8uLOTUZu0NYXzHt1+zU+QzBUycH8+GCG+aHjMwys2RC1Cn7Fu
+      Kg9xIYj+rQhR/4lCFhENwpkIRSQLVtq6TiCjz5h9AoGAZYYsTFsxpV7i2P/plcoo
+      jnF592lbKlpwHj6UTZI3mODZlvqznkCbw/ABBDpeeAdY5dkXrAUUN9J+VSvMiPlR
+      Kz0ccxLwSQNcIprbwUEoC+tfVJpPNL2aXaUaPPTVpW7nJMuC7VYzez6vkeF/u2ym
+      nEyXOZ85n3PoGplDs1+Hp1ECgYEA5WgLZCl5m7N3dWvJ/AhjQVdTmCyPKiC2CD3r
+      6HzTbeGRcLyyIITA0+i3dfI9nC6DvBCNcpHeTXJd/iozaAoPhTKYRblSY5qMsXis
+      e20tA/c+YokVV2n2xqQnFwHlI4fQDPfHS9bcBF6Wh+KmSnj9O6RS/0L+WI8MQhtm
+      ruJCvFECgYEAyjwt9/qWRkqy1A64EQ0RG6WsGKsE54bPPnzrzooVkN9xL9Thkqig
+      UNBCE/JiZ/Uki120qamSUMB3GbsW1YvaoUURHkYroyJZRzuRm7H1GyTUykNhe6MJ
+      agRibe0pWh4pHPw4nIMqJM5oSEeequJ3AlGXvlDJIBAV8knL3BflY1k=
+      -----END RSA PRIVATE KEY-----
+  etcd_metrics_server:
+    etcd:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFAzCCAuugAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDEwZldGNk
+        Q0EwHhcNMTcwMTE2MDI0MDIyWhcNMjcwMTE2MDI0MDI4WjARMQ8wDQYDVQQDEwZl
+        dGNkQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC/5KQDFlOT9ETM
+        bchOBdgssqJ4F8SD95kpL/g68uafWeqzdO8HjXKnO4EvgH0JnLS8JsdDveVt8GvI
+        scIvu3QfuNAVQEg3ZsEQ4STY8oNsRIJYeJv/IP7tUfynUJNzOqHvPXQTQkLMxkKH
+        aecwTcysT6LGAClES1yihWskBEMp/yAlKSUWvTn1p5PiSr4LdFnQHDm1z82TlA+u
+        /O+bxNdpugIKpT6reTIAYTNLF5V/ldgFuKN89+C3H7RbnZi9DD1wKQBU9yB6G+ws
+        6ZWMIjyKJhC6rLbzoz7AWMXQcLKr71lvgh/2K+BLr/k1izTn5i+SAxYCyZ9ywQB7
+        VksyaWwHR+Ogfrgd3RZ2NtUj8Fe8zH5ZlQZwEpAL83qH6ei7f8CsmQxWkn7nnsDo
+        /oqXU0ibx6wCg/+Ii6lsO8yHEGH1ZJ4vPwIJ0jlJOoPyrFo3G9xekvuAEAKa9oTK
+        GdF0MFiZVjQFNRkcx9IeROuYON9aWq5ibQlytYB4YRdGoWkU4xZgiWdAdUGrFIkZ
+        cdxyhPSjo3AGoXPFnrnWP9l1WBUMD86pCsP/azWodWexyNjUcJYXbhNQxDmJXTr9
+        T4t1hZ4H31Te79HAvGrEyeB15VBg7uDfcWsCNSNXF1hvLvA6V7oe8YpnM3A3zHzL
+        CTp0XUSfStUwLSl356GtmXWb9Lo8iQIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYw
+        EgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUiqjAQdN2sftMbFeMS98bwQP3
+        FocwHwYDVR0jBBgwFoAUiqjAQdN2sftMbFeMS98bwQP3FocwDQYJKoZIhvcNAQEL
+        BQADggIBAFDH9fjA03iGjTdK5WdqoMzZZrIMZpsZ7YNUzPbxCURneo0kfeWxAHDH
+        pwfcLVbpXXS4VPSXkwR2znGYKkXawbmmaiAIMdeiV9LlJFLsE3FkhHB2ENoByIgR
+        Xs3osrGLm9m+hsG1w4+uv3fO3HmQ5wDbwSbsJM8c6Otedf5MK0rZjpxypuvqkvk2
+        YwbPg3WaBddLILnJz5+YGMGlwuaGKbbzdiitpEDRliuUgueSfJsUemJRGiSL00sh
+        22W9MXNB15NzesEDEKF7/keUthQT86diq1gBuyTX+MGeFOy8PsB2mRjeje6THjVd
+        xhVxgc1CZIu3s6Eb12aHkemIAMD7XrQc5TP3rIkgrOiEALiajWTyGW1sU884tcps
+        rwrUK4ly3bbpZAIeeSuk9wQd5o8nG7nNR65XHtKRxqGhl8Epyk8DB0Hn9Wp4VB0J
+        Wk8Znt4A8PsimXwmUrJCA75gJuq7tsxW/3f4tGOgw7sJFvgTePj20jIZd9nva7OG
+        hcrWZvYxXud3keqcDJ0fJBiudMNQHJO30FmRNdJOiipWY396fFjPRFgjd473JHpe
+        S4+9yRotwqPa48nd20rytoJctyRQ9vvfLNbzr/KuBE9bDA9jnDXH7Z46S+9FbHhy
+        BTVUDbZDpQWfdXe2l86VwWjRK9obrqKAJ5INhiYVcOHmN+NQ1Ja8
+        -----END CERTIFICATE-----
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+      dns_suffix: cf-etcd.service.cf.internal
+      require_ssl: true
+  ha_proxy: null
+  hm9000:
+    ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIFBzCCAu+gAwIBAgIBATANBgkqhkiG9w0BAQsFADATMREwDwYDVQQDEwhobTkw
+      MDBDQTAeFw0xNzAxMTYwNTA4MzBaFw0yNzAxMTYwNTA4NDNaMBMxETAPBgNVBAMT
+      CGhtOTAwMENBMIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA0/ekLju7
+      ijFI/TuQ9H45B6CHcO3OJYj73o/9lFVzYdiqStblrqwjNdaTfJLHTjw9mqVKr031
+      RaMZ84KTmgH6IOX2aYbiA8tOX0bXHciFefdWcZse90CrIADMOmwzZkncItHGbO+z
+      BL1PWXKYVwyZnZeMHWj6PIktH+7MHNEQ+jvZ+bvBgt361Fi45lP0srMqajxB9POJ
+      lw/Xv34K7uWuZgrloznOi1Ard3S35U4iTzUEDx0xe/w+bMzapqF77toNAPbBMoOS
+      rLlk60dbOlcJZYq/4q1EuGKi4T6snbDnMQVZLpfPQNW0y5xdKXE6OzffDplBLdV/
+      MqsnFb4cg9GGW3hVpwIJU95M/Y3wxPr1UIEFEUxQ8lzqVg3R7S18FHFQADebpUv+
+      kEw9kFJA1wvx9LZvsuzVOzbRdleRd2xWFp09uSRBVAxRqoEnPqHNcwEmnVcu2QDf
+      djhi4kX+wLNI9mRP2x+S4Fuzor31uHWwHw4JumHOOMPJtFfD59EyE6zOxxX7y7I1
+      Gdxw9JHnLxFPkSWigxRpGcAZQsCcUi5IwwksO04Oa617uQ62Ao/9//m3hN3X3JOW
+      tZ6suKuSQgKVNZFA9r63TZQOowJv0WOoiSd284VNLLjiHvYIO9yZJvq/1vqYA+DU
+      aDz5XHeet9wKdPAY2vGFtfefVUT81CTQ2n8CAwEAAaNmMGQwDgYDVR0PAQH/BAQD
+      AgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFGcqzlTy6dgr34MY4qRC
+      QQMsfUfxMB8GA1UdIwQYMBaAFGcqzlTy6dgr34MY4qRCQQMsfUfxMA0GCSqGSIb3
+      DQEBCwUAA4ICAQDQbEglsc+MxF+s/N7xz8dEByxuUUKgeLBB869bwfRC8361rAES
+      VRuXgqoNy8cuAge0tuV2iM/hOgTiglaEtYyfcwz+eMM5MfwP7EGqB6L5DwmDKyrk
+      PThaeXGqBiTLgwpDDsxmV09oizDWTXZG+i2AAY94NJPOZNapm9aJADE/8KqzA9HI
+      j2bRUu/+28fBSDMIg24AlLGT79X8f7ZxTBEUmRTncK1Nw4H/+9MCNpJ01QfGga8r
+      J6mGw1TmVdscAht8BRduN5+KUoLZMwLONipMOGb3dLBBYo9kftUY2AjeJdPHRmvj
+      137ZVRhpGCBTi/Xgtcfztox/eYuishmTDvNT4hFnIjLleFaODyy0ILIhR8JHPT0k
+      m/o1zStaugyAzUZ9vPVAbXAiuZikS4RE+RDINqCI6FND/PhJZKSCwG2suQ0taxq8
+      JCBdyZJsEWwvaRQWmFkDOk0EI+TBZa58/ikRqhXxBHitvrzqNPoPTVlA/X0pBXa3
+      fS/2jqpji12x+ncuRiHOm7MxfxJQFIIHqZjLKsYKpd88sfPdi1C/r0UHyQI/pBFw
+      IxkJIjoVnyRtmq/gmzugtV5lStmMuL7kq04/POcfK/1FnX1SKrtlZizintYt7zhT
+      aScke2bVr8ae6u93poA6xWaNyprE86gqWtHglZFmutLWluEX3xgZv4Cg0w==
+      -----END CERTIFICATE-----
+    client_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIEJzCCAg+gAwIBAgIRAM+ryy4WgLqLQwF5915LdTgwDQYJKoZIhvcNAQELBQAw
+      EzERMA8GA1UEAxMIaG05MDAwQ0EwHhcNMTcwMTE2MDUwODQzWhcNMTkwMTE2MDUw
+      ODQzWjAYMRYwFAYDVQQDDA1obTkwMDBfY2xpZW50MIIBIjANBgkqhkiG9w0BAQEF
+      AAOCAQ8AMIIBCgKCAQEA7dOGYrkZbaqd9AXLX1aCL+xKzYlgFIgk1h71whW2Iz9j
+      XA78PN/IFy01kmhCz7K2yt8Ij6c+C4+w/kTvwd7fWhVFrc3xCsvh+RObwSrH7vs9
+      v/0lUBRp2SKcZ00H42HAJ/6vN4Ykv8SjCT1ZDQiEpPd5zO4orIcXCoRct48fxoZO
+      +V4e0kp+8H0fE25OZcHiaBkKTrztTXCpmzW3KD1zp7q+23uc/nd/4zwam+RpFR85
+      G0DQ0W20pOGd8crOTezp9wn0uhAztSvaMcwx4zvbLv4j2+tHXEmF5cyLZHgIH36h
+      M+e/1N/Xw5XTCKIICt7HaInNVxjJibDtlfvzKWL20wIDAQABo3EwbzAOBgNVHQ8B
+      Af8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQW
+      BBRRTXASCi3X0EZTmsz6ss8DPNnYMjAfBgNVHSMEGDAWgBRnKs5U8unYK9+DGOKk
+      QkEDLH1H8TANBgkqhkiG9w0BAQsFAAOCAgEAws0/a6zA90qloSWWxTBitUSI/UvM
+      z4S82QKoGoA5HljutJfdNocjkRd1lGIomrF+ban5I4SBerzaZ+diFEnmvYzdxo2L
+      svyKQZflGaPdxHLPPoPWQ4EDwOvloy2ZEF4y2dksbMyIE4D9S+OqByJvhVMTtx3g
+      nocoVtqqYVRMuuGYgihQtPKJGDw+sD0ZdmcZ9MTbkeUuDoESQ9teaoa/eBWclulj
+      6Wh6qmPgSmf2d7BMhL6JujSQzlkAzGLalYdKtl6BLPTZt6NGFjvQAAmn3N7MO1S4
+      5AkYMooAlstru5hRjgHnBP1/39qVhOj6W9aJqhW9K0klFlrKPFm8Su/QnUCtZjMo
+      ds1OYfpgtEun+L1ptxi9VIImxyrjiGOtiiXCWZDMN15Y4AXJcK/le21pKltQRJWv
+      brp1LLVnS9wW9DcAL3Fl9I9a+ohNASR5ad6wo+UCkGyDehtQSNe22pdCCTyFxlhG
+      LKwhoAF+KVClTD3BiJoaInEiYRDWpFvap1MciPidRX4DDcHL4Sl47fPHGAo9Yh+o
+      xU0JwXaHeGE7NnIihBFf8XfDaE3A+0m+tKl1UFlFj0N/Jgdie996IhKs7fBkx11d
+      nMQS301MojU0D9jJ2uPkRic/J+mHa3vl/23bcYUdZhUpE4ovTTO7xLA/GuviMnDa
+      4gQ+Dl+R95YB1HE=
+      -----END CERTIFICATE-----
+    client_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEA7dOGYrkZbaqd9AXLX1aCL+xKzYlgFIgk1h71whW2Iz9jXA78
+      PN/IFy01kmhCz7K2yt8Ij6c+C4+w/kTvwd7fWhVFrc3xCsvh+RObwSrH7vs9v/0l
+      UBRp2SKcZ00H42HAJ/6vN4Ykv8SjCT1ZDQiEpPd5zO4orIcXCoRct48fxoZO+V4e
+      0kp+8H0fE25OZcHiaBkKTrztTXCpmzW3KD1zp7q+23uc/nd/4zwam+RpFR85G0DQ
+      0W20pOGd8crOTezp9wn0uhAztSvaMcwx4zvbLv4j2+tHXEmF5cyLZHgIH36hM+e/
+      1N/Xw5XTCKIICt7HaInNVxjJibDtlfvzKWL20wIDAQABAoIBAQCCDGH3CBq0klDP
+      SH/eQVLtW7vHyvAkKhJimAlxOSgg/B+cDoG10/T5X3pk9eha5PH5254115EhB1EU
+      qaOlkvb1rp4snWnKqpSF/Ef2iCtOLkqk+ot1z8PVvYxjHIdMun42IJm1tf/QcXlp
+      qwdQDjFieAU9n5nURga+dISyx2vrxSXqF8O54zLDE1GQkSGzSBwViNS3IjrzbYgh
+      1Uow5fqqJwdxj8QAhKHtql2tCGAVVfY4g9hMmzfQS86i0hA3TjIxq+xWPXyA/kow
+      pdwUuL089HzO14kbCsoNvAJaFa+QTNIXMj2etMdpMNmEOQNL0lI8sdJL64Sykpdo
+      egLG6peRAoGBAPEBMj2dHhwiKnSDIqDguT6ihQ1mDWdi58JHn8J7E6UXTtUqqtSV
+      SUChbj1slOSt00k3ooCHQJcCXGSBlmsmITt9FjLD6i5pMOjKlN9c7BP4623C5d+/
+      Iqgzk8q1g2UI8TzN1E5JkkI9PDWMVG76V5vrzvZF0x4rjwTLRxtnfqZ7AoGBAPyf
+      s7a8NrtwoswGQCHP6a1pLZeD1bCi7rcc21NgOE3YZN9OmURcsHnqvqkI5IsKtcGY
+      nJYT/Utij4TBILpwTk9yrBKyGBXsX6vpf4JIGb7QDV6lLFnqbjMp8+OfE1BGLMur
+      6kbw4yVQzQUQrREExcn6nIQl6TFmUu2I2uTotO2JAoGAGlC7H6csRn4kjJxVB6QC
+      FijAxnnCNOvDyp7vftjZiElHPlduV9AFM51s4CAfEek5DOGaSNZ74wFK/V55AjIj
+      ps89wUVLKM4rnP+hydHnpTak3lNNrmS8cAlRteyj8EBNtwnyiKnX4ou1K1OrVILZ
+      VhklfBabusuezjM0DHX8ikkCgYEAgRTdUD8FvGsGVDfRZzWEkn4OtL/BXbszPM96
+      5jRhMK2khVH1ELBH4FPpThfkJ4O2cZCYWjsmjvFyogPIxFsEOKZAdGEZ24HnNMFf
+      zOMofI50dmrxqZQW8P+7xhAPX1IsK3nRgKQvfG64A6GMvQhyRA1RElkIuZwuPX9T
+      UenyIPkCgYEA0v0cd/s4X/Wo37Lz255Pf9zPbDvXcKV48pPKhhmWbm1KOZGRbGq1
+      07xo6xzXvZ4rrJRYrCe722g0wrgln/ZjDU8ZNa+NClR0LjR6mP+perZ4z+09173N
+      2F2hVB/4bW8vstFEpkX2idZmDeqI2K9Ooq3l/Ksotp5pOWaKk++mp/A=
+      -----END RSA PRIVATE KEY-----
+    etcd:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFAzCCAuugAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDEwZldGNk
+        Q0EwHhcNMTcwMTE2MDI0MDIyWhcNMjcwMTE2MDI0MDI4WjARMQ8wDQYDVQQDEwZl
+        dGNkQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC/5KQDFlOT9ETM
+        bchOBdgssqJ4F8SD95kpL/g68uafWeqzdO8HjXKnO4EvgH0JnLS8JsdDveVt8GvI
+        scIvu3QfuNAVQEg3ZsEQ4STY8oNsRIJYeJv/IP7tUfynUJNzOqHvPXQTQkLMxkKH
+        aecwTcysT6LGAClES1yihWskBEMp/yAlKSUWvTn1p5PiSr4LdFnQHDm1z82TlA+u
+        /O+bxNdpugIKpT6reTIAYTNLF5V/ldgFuKN89+C3H7RbnZi9DD1wKQBU9yB6G+ws
+        6ZWMIjyKJhC6rLbzoz7AWMXQcLKr71lvgh/2K+BLr/k1izTn5i+SAxYCyZ9ywQB7
+        VksyaWwHR+Ogfrgd3RZ2NtUj8Fe8zH5ZlQZwEpAL83qH6ei7f8CsmQxWkn7nnsDo
+        /oqXU0ibx6wCg/+Ii6lsO8yHEGH1ZJ4vPwIJ0jlJOoPyrFo3G9xekvuAEAKa9oTK
+        GdF0MFiZVjQFNRkcx9IeROuYON9aWq5ibQlytYB4YRdGoWkU4xZgiWdAdUGrFIkZ
+        cdxyhPSjo3AGoXPFnrnWP9l1WBUMD86pCsP/azWodWexyNjUcJYXbhNQxDmJXTr9
+        T4t1hZ4H31Te79HAvGrEyeB15VBg7uDfcWsCNSNXF1hvLvA6V7oe8YpnM3A3zHzL
+        CTp0XUSfStUwLSl356GtmXWb9Lo8iQIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYw
+        EgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUiqjAQdN2sftMbFeMS98bwQP3
+        FocwHwYDVR0jBBgwFoAUiqjAQdN2sftMbFeMS98bwQP3FocwDQYJKoZIhvcNAQEL
+        BQADggIBAFDH9fjA03iGjTdK5WdqoMzZZrIMZpsZ7YNUzPbxCURneo0kfeWxAHDH
+        pwfcLVbpXXS4VPSXkwR2znGYKkXawbmmaiAIMdeiV9LlJFLsE3FkhHB2ENoByIgR
+        Xs3osrGLm9m+hsG1w4+uv3fO3HmQ5wDbwSbsJM8c6Otedf5MK0rZjpxypuvqkvk2
+        YwbPg3WaBddLILnJz5+YGMGlwuaGKbbzdiitpEDRliuUgueSfJsUemJRGiSL00sh
+        22W9MXNB15NzesEDEKF7/keUthQT86diq1gBuyTX+MGeFOy8PsB2mRjeje6THjVd
+        xhVxgc1CZIu3s6Eb12aHkemIAMD7XrQc5TP3rIkgrOiEALiajWTyGW1sU884tcps
+        rwrUK4ly3bbpZAIeeSuk9wQd5o8nG7nNR65XHtKRxqGhl8Epyk8DB0Hn9Wp4VB0J
+        Wk8Znt4A8PsimXwmUrJCA75gJuq7tsxW/3f4tGOgw7sJFvgTePj20jIZd9nva7OG
+        hcrWZvYxXud3keqcDJ0fJBiudMNQHJO30FmRNdJOiipWY396fFjPRFgjd473JHpe
+        S4+9yRotwqPa48nd20rytoJctyRQ9vvfLNbzr/KuBE9bDA9jnDXH7Z46S+9FbHhy
+        BTVUDbZDpQWfdXe2l86VwWjRK9obrqKAJ5INhiYVcOHmN+NQ1Ja8
+        -----END CERTIFICATE-----
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+      machines:
+      - cf-etcd.service.cf.internal
+      require_ssl: true
+    port: 5155
+    server_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIElTCCAn2gAwIBAgIQLd6TGTO5th7k5M2uR7QGljANBgkqhkiG9w0BAQsFADAT
+      MREwDwYDVQQDEwhobTkwMDBDQTAeFw0xNzAxMTYwNTA4NDNaFw0xOTAxMTYwNTA4
+      NDNaMC4xLDAqBgNVBAMTI2xpc3RlbmVyLWhtOTAwMC5zZXJ2aWNlLmNmLmludGVy
+      bmFsMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAv/7S4oGqhfSPhBD2
+      NY46wWvLoUsPnebny1GYhDzkgM23J6B5L3pWhM/2D2MSoqGJHiSmHQoFR9aHw+dV
+      UuFVkhcCPILUNBWeJnkQtc8Kenoz9jhHFAbbPV/bxseUzVv+O2B3m5kO2FijMjfM
+      PoewRhEyWXIB4BaQDYai5zYsEhOS6MthTEVwv+wLYI35Ut5KOXkIhUCw159RR46k
+      5HOPHPZkXzikpxU+7ipQCqm0+f7arti82VMYHvOI7TdEmXuyKMBUtG+H0B6yhQIO
+      JkpHlYYDsgpi23x7Eg0l6FpUw4TPXkjSAQg9ZUe/zkAzMfoQefv3bmjkfQT9wz71
+      kxxIGwIDAQABo4HJMIHGMA4GA1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEF
+      BQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYEFCYUg7lLKbnz/RLs+usbJagvpql+MB8G
+      A1UdIwQYMBaAFGcqzlTy6dgr34MY4qRCQQMsfUfxMFUGA1UdEQROMEyCJSoubGlz
+      dGVuZXItaG05MDAwLnNlcnZpY2UuY2YuaW50ZXJuYWyCI2xpc3RlbmVyLWhtOTAw
+      MC5zZXJ2aWNlLmNmLmludGVybmFsMA0GCSqGSIb3DQEBCwUAA4ICAQDD8z5Q1iIQ
+      JIryiPB1jUC4BaDgFR6dTfKutwD+TGxrN8eqi2FikbjeX6aO63Kyz+zU62vdtn7c
+      XEFpwve6EkR/ztrUTV2IEy14DPE345L+BscBGP/M7wz9888zaVe2aJLC27P/+gcy
+      dTsc08YpHhIGVjUWdZ5kn5Q+svTMXbbhgiN+3aDRMNb8vBmccfJXuOxciHGbilS+
+      n8AbZfSQvSQt/ID1CWT2T8+cufhxHqfz5/+EV4erUaMTzPjGerRTWfFgs2d+ci4M
+      42XMmx/V/yW2cskUKN8hB1wHz0MufSTH+T1yoD9Z4RY/nMYxqCfb0YnZVOPIX/9Y
+      gYKyRDT3VtZ+oc54dGEluVtsiw/ldD7/Xew6QPPZIiwZHz6K/JMf2zXIoZT8Q1f8
+      qXNptRY2tcjLlCoWf6HVACx8Ssk90IuDDAULIynGVzG2I4ROKthEslyapaun9oHr
+      9y0SR6Rm4FcfG4LWkL/bbNfIsPHYD53db5YeP7HoUbVq7kT8ppfjDzPG+7s2A2vF
+      hi/ZdBooNNwueOSa7Y3S+bAdncpgPB1EzT+alVcD4F8tzFo25pgwzQ/ji/Ki9mY9
+      WHD48WpP9FTqtlXLDlnWUODzSkCRneIB28iGCurtaHxSRKXiHvWJl/q6lTOr6VvA
+      iK5iuk5qHLqLcq4I5BJPb8tBTh31YwnFtA==
+      -----END CERTIFICATE-----
+    server_key: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEowIBAAKCAQEAv/7S4oGqhfSPhBD2NY46wWvLoUsPnebny1GYhDzkgM23J6B5
+      L3pWhM/2D2MSoqGJHiSmHQoFR9aHw+dVUuFVkhcCPILUNBWeJnkQtc8Kenoz9jhH
+      FAbbPV/bxseUzVv+O2B3m5kO2FijMjfMPoewRhEyWXIB4BaQDYai5zYsEhOS6Mth
+      TEVwv+wLYI35Ut5KOXkIhUCw159RR46k5HOPHPZkXzikpxU+7ipQCqm0+f7arti8
+      2VMYHvOI7TdEmXuyKMBUtG+H0B6yhQIOJkpHlYYDsgpi23x7Eg0l6FpUw4TPXkjS
+      AQg9ZUe/zkAzMfoQefv3bmjkfQT9wz71kxxIGwIDAQABAoIBAGyNaTKD2aQPWC11
+      YZ96ISJHDkTNqbC/YwMDyVXLD+77YLjY9GuxocVJx3d/roOhDWOrmPgGOGIbm3ta
+      ClXn7XfB5pPL7KreJiLehGInA2eoPETUIOvjzIVw81P6d9l8T8vGiRnCejA8PVkh
+      TytzkGitRGhqG0FVwHDFVMmhSV2WFKWCZIihEgCubtz5hUFtHBinVYxBu9fvR26Q
+      upNzKCX7ol2EcGikUaz1FnbOmSBKKxsNKU+YX5U9Sh3OKsGM1jur94oz+Ylj/xlu
+      vIuVBERXe4GI+e+cXeclvuHZkskOiaY6m90kdsHyFqf/DrJPJonH74vauCFOdQPn
+      qNqvaNECgYEA1FZuTVSxx13xkjOrmTpEjLtX65uOBjWMRadajlj8AnlfNtotqU93
+      GmXHWKvsGOW1Pmx6Pcuc/U7s54zxXwNNtWpop2+8/5WIZJEYiZ9ArqSiNT/+8SVi
+      aDOKN0jRZKWDLS7QuBvh/8QB3oyYF6OqdH6d+lW9v5G5ROUm7MeqABUCgYEA53mR
+      R+aR6o/5dDgIUS4nUcIIh6g/ojv3xhGXFXOz0ygTbIU0Acmi2jLdHlYuIKBD8wab
+      GR2I5iRumVcmwwDCFioecxEwP0MaHygBhOX7UycAaPms9m0PPnego9EtvKflyTqX
+      MLW2BzMHnQKp9FT3/E/xHCx7Mm7AyIG0SwxOA28CgYEAhfnO+P4Seg+9Z5kwkarh
+      K8bdT6zDrQlGa4CPs7dTsx/vwsVhAC5CoSZM5Jb9jiwJ8swxSSJa+L0+307f0Spd
+      crUkOVlYcA9iksm2KMeR4V/BdUXezzreX479i6pnbFC+dtjOGwyEyYNcBpbBNFEx
+      MPXfKd/FrMT+mAjaSZYlno0CgYBzz1HNjGFS3ueqquIWY6YOdKq53IbBz4j+0wwp
+      EnNU4Qce02IaxtwwmSQiKnH3ptd4PsTYgvtcUbv4Ai+FftqcJkSHw4DFFfh6wBRK
+      fpoIl0nQO6K6xAPNeCKp810Tt1jzHdpI55ED9xcHCi8n7F8KIKD8PJECwYC4kJQ4
+      vBZIBwKBgDzQDcqIry9L5jCZ/6KK6cqLY2WK/ToBFcGp3lE1C1LWiJRDh0BJMnBr
+      pBHV0BjEG61E7O2f86vaXDr+GEVlF6JZ5Pxmowq1XogxaqxdIC4uUwEo94rDeCI1
+      ymqyBEcmojy7MdR4PFs+J+py3S1EGAeZ019ZpiCaQGCqI7IRTFq+
+      -----END RSA PRIVATE KEY-----
+    url: https://hm9000.cf.kyland.com
+  logger_endpoint:
+    port: 4443
+  loggregator:
+    blacklisted_syslog_ranges: null
+    debug: false
+    etcd:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFAzCCAuugAwIBAgIBATANBgkqhkiG9w0BAQsFADARMQ8wDQYDVQQDEwZldGNk
+        Q0EwHhcNMTcwMTE2MDI0MDIyWhcNMjcwMTE2MDI0MDI4WjARMQ8wDQYDVQQDEwZl
+        dGNkQ0EwggIiMA0GCSqGSIb3DQEBAQUAA4ICDwAwggIKAoICAQC/5KQDFlOT9ETM
+        bchOBdgssqJ4F8SD95kpL/g68uafWeqzdO8HjXKnO4EvgH0JnLS8JsdDveVt8GvI
+        scIvu3QfuNAVQEg3ZsEQ4STY8oNsRIJYeJv/IP7tUfynUJNzOqHvPXQTQkLMxkKH
+        aecwTcysT6LGAClES1yihWskBEMp/yAlKSUWvTn1p5PiSr4LdFnQHDm1z82TlA+u
+        /O+bxNdpugIKpT6reTIAYTNLF5V/ldgFuKN89+C3H7RbnZi9DD1wKQBU9yB6G+ws
+        6ZWMIjyKJhC6rLbzoz7AWMXQcLKr71lvgh/2K+BLr/k1izTn5i+SAxYCyZ9ywQB7
+        VksyaWwHR+Ogfrgd3RZ2NtUj8Fe8zH5ZlQZwEpAL83qH6ei7f8CsmQxWkn7nnsDo
+        /oqXU0ibx6wCg/+Ii6lsO8yHEGH1ZJ4vPwIJ0jlJOoPyrFo3G9xekvuAEAKa9oTK
+        GdF0MFiZVjQFNRkcx9IeROuYON9aWq5ibQlytYB4YRdGoWkU4xZgiWdAdUGrFIkZ
+        cdxyhPSjo3AGoXPFnrnWP9l1WBUMD86pCsP/azWodWexyNjUcJYXbhNQxDmJXTr9
+        T4t1hZ4H31Te79HAvGrEyeB15VBg7uDfcWsCNSNXF1hvLvA6V7oe8YpnM3A3zHzL
+        CTp0XUSfStUwLSl356GtmXWb9Lo8iQIDAQABo2YwZDAOBgNVHQ8BAf8EBAMCAQYw
+        EgYDVR0TAQH/BAgwBgEB/wIBADAdBgNVHQ4EFgQUiqjAQdN2sftMbFeMS98bwQP3
+        FocwHwYDVR0jBBgwFoAUiqjAQdN2sftMbFeMS98bwQP3FocwDQYJKoZIhvcNAQEL
+        BQADggIBAFDH9fjA03iGjTdK5WdqoMzZZrIMZpsZ7YNUzPbxCURneo0kfeWxAHDH
+        pwfcLVbpXXS4VPSXkwR2znGYKkXawbmmaiAIMdeiV9LlJFLsE3FkhHB2ENoByIgR
+        Xs3osrGLm9m+hsG1w4+uv3fO3HmQ5wDbwSbsJM8c6Otedf5MK0rZjpxypuvqkvk2
+        YwbPg3WaBddLILnJz5+YGMGlwuaGKbbzdiitpEDRliuUgueSfJsUemJRGiSL00sh
+        22W9MXNB15NzesEDEKF7/keUthQT86diq1gBuyTX+MGeFOy8PsB2mRjeje6THjVd
+        xhVxgc1CZIu3s6Eb12aHkemIAMD7XrQc5TP3rIkgrOiEALiajWTyGW1sU884tcps
+        rwrUK4ly3bbpZAIeeSuk9wQd5o8nG7nNR65XHtKRxqGhl8Epyk8DB0Hn9Wp4VB0J
+        Wk8Znt4A8PsimXwmUrJCA75gJuq7tsxW/3f4tGOgw7sJFvgTePj20jIZd9nva7OG
+        hcrWZvYxXud3keqcDJ0fJBiudMNQHJO30FmRNdJOiipWY396fFjPRFgjd473JHpe
+        S4+9yRotwqPa48nd20rytoJctyRQ9vvfLNbzr/KuBE9bDA9jnDXH7Z46S+9FbHhy
+        BTVUDbZDpQWfdXe2l86VwWjRK9obrqKAJ5INhiYVcOHmN+NQ1Ja8
+        -----END CERTIFICATE-----
+      machines:
+      - cf-etcd.service.cf.internal
+      require_ssl: true
+    maxRetainedLogMessages: 100
+    outgoing_dropsonde_port: 8081
+    tls:
+      ca_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIFETCCAvmgAwIBAgIBATANBgkqhkiG9w0BAQsFADAYMRYwFAYDVQQDEw1sb2dn
+        cmVnYXRvckNBMB4XDTE3MDQyMDExMDUyN1oXDTI3MDQyMDExMDUzMVowGDEWMBQG
+        A1UEAxMNbG9nZ3JlZ2F0b3JDQTCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoC
+        ggIBAMmn+fiTCCqfNEynK2CxWdP1cLPr0wjb753XuowQ+5qcEUS9HWAPwqxsP+Mk
+        65urKZMw+ZdmlfIbxjlFN079OBgreB/h1Xv/XWGI8AYbIKtlthRMYCLGlrFvDSaV
+        bUIE5KwpQJYaaxZAjI81tqVdSowbeS7g/x8sEovtKhNew69OsXkYNi6ewLrsjKc0
+        1Lq4I6RT8xFTJADbK1duEJAT2Ta0Ka9Q0D218GoNVYkAEVAiYp+KUWEt4N24R04y
+        Gir0Wh5ZBtBqd8AZsJCtwkUKb5N2aU4Fq1nogMOseaywxyFdbiTpkaEu8pnOOzD1
+        n1W4Aaw7Ci9CF4cN13saw7B7kscOVtQ0cB3mrMaMjRd9OLXad9hmu9m0HwtZ0e2g
+        3obr3YTtmoYOXiDkAoNxiRD5NspnaOLjyGIM/Giuo1jiUYBi7vkgzSOz84kvfviE
+        84GbUmYFU9NdJhUsitzNoacw+0R9KR4WmYSLUQkOtMsycMlzfxhOY1H7oUjA99q0
+        EvPIMC/J/XvFJkkFI8zJDXG84a7Fdrxt+zEETpuOwNfAjFtckFgvga9MaFY4ZufJ
+        y3TSc6OWkSRPH9TNqGTSG4qgXuSqnmmLHvSqyuHer16+4AfXrvJaDmtnydV3iCCq
+        iPnAgEb173/Xm1T22a6Y2jPCs1njErjclW8U4NXAAE8aIwehAgMBAAGjZjBkMA4G
+        A1UdDwEB/wQEAwIBBjASBgNVHRMBAf8ECDAGAQH/AgEAMB0GA1UdDgQWBBTNcX4A
+        jTQNBAAjlYR3Fj1RrBqW6DAfBgNVHSMEGDAWgBTNcX4AjTQNBAAjlYR3Fj1RrBqW
+        6DANBgkqhkiG9w0BAQsFAAOCAgEAPsocJeGZDpnq3A39jNVC7wKOpE0oM/phGv/W
+        ulwQNslw2DtgOUXTyI2fQqkHfM1fCFZNpIqea9iBHoTmIVYKimHiYFNwkZ+2yY2x
+        Z8gcjCXx7PtvJrD3u1lGRZyH6QgEuCwQ5JGu2E+LImrfjWjEVBxDB4vP6PiP5pQo
+        qvsFB2yWUBACJMXlc34Ontg40SclqlQwOezeUXIrAtgD3TIwc5vgQSx+JM4g8HD4
+        6l3gBJuh5HgHuUMbARf55YrqWRRobbzvD9CfqJ42yrn6HEBp2ncmdd/YtaoqR81d
+        P9JodQtaPwnNO9zALv3iFMd6cIXYX55u/ohcGLrrMItLKhxCxycYrYSDqAUKdyhN
+        dFmJfm4rStwhR2h+QuZfold1qra+bsRwpdJ4CnVUPv9cKqlUlHHc0gmOQRsovuln
+        WoRZAO5cnE+Cq5IxKvy0MCi3Mu70b0EA50AS8Pk0CWT+cHZm0zrb7FzAnRDxbOBG
+        y6YRHd1makX3vBkoZLhzuvof8T4J6wVrSwQZgEdoteKu9uNA2hjRCwuyDC/t7AOM
+        AcA5ZlJ9EjYTH0S7lIxdWP2AVB85O8szOIk5CQ1gyqjTixUVDqYWu5oDsPevI6gM
+        j7xfc+Tm6lfh1FWEBWvOlvd+o/g+J6XEV59cvtKem9BL1VhZKRl2zqfRQPbGkVNH
+        mhe4JDY=
+        -----END CERTIFICATE-----
+      doppler:
+        cert: |+
+          -----BEGIN CERTIFICATE-----
+          MIIEJjCCAg6gAwIBAgIRAO9mWSd8YOp1w4Ab6BZITfkwDQYJKoZIhvcNAQELBQAw
+          GDEWMBQGA1UEAxMNbG9nZ3JlZ2F0b3JDQTAeFw0xNzA0MjAxMTA1MzFaFw0xOTA0
+          MjAxMTA1MzFaMBIxEDAOBgNVBAMTB2RvcHBsZXIwggEiMA0GCSqGSIb3DQEBAQUA
+          A4IBDwAwggEKAoIBAQC/9V9ns6m/m78S3UPdKTIdB6k7CRYU7PD+XwoP2uzVwOG6
+          f/L1qUGSLxq0seedHuVlJoA4Z53VcrH3No2MmDigwH/Hs2S0ny+xo6cdDlBmcByk
+          P8SC4e43BnG2X9CpWhNF7yi1wGFtHU7TZvkYLPSvjZHSmYRODwvnNOZpEmZtEin2
+          QTmP8rvMALnKbQhNfQD5KK280m9eQ3jGl7WLOkym+O1Gy7r/K439ow28sXz9ccHB
+          StVpvVE0igKVDvjD1ojNSyxohF9Tmm6kG6wAFTZXkMCUCbQQYHT4UzusW2maugNs
+          B4nEIQbj0Wqob5ZAh+UjRusmlJjY+AaxVblQwgCtAgMBAAGjcTBvMA4GA1UdDwEB
+          /wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYDVR0OBBYE
+          FF7+hbmGRoozrWiItKpPUu9zVTusMB8GA1UdIwQYMBaAFM1xfgCNNA0EACOVhHcW
+          PVGsGpboMA0GCSqGSIb3DQEBCwUAA4ICAQCQYMAmrBa6zEadvoKP0JnAZ7jjadqS
+          ukvTpblGDn/S6NymbcOIjaCF4FFicAkHnrA9TBjUTTaylaXyuZmkH9C+LYNZnAQS
+          GE+qFtSF8dDyM78vHHJxP29uugdnx1gs4G/hZ5TdVOCc2/Kz20wRakpj8t4HxPAH
+          nLgPt6Hb6evIqKGLaEvHfIKAEczV3c2kbGaf4Q5lTGIufEbaz0DE9xCowah2lUpZ
+          kfuqJGiO/OYaeT0Bxsjz/HHJP7ehsWFPiYDTEWbbgC+Vse0RO08+VzR/hlJ78C/V
+          Ai/nG3pRFX1PZ+eIX968H36GxWgHHVn6mazt/iQ1plQJpvrET34ZbEUWTYpVjUrx
+          SKE+rpveFyrNWdV5pO+fTLJ9s3P6uGNvzXRTyJJ2JXWUK/pdPGqy97vpUMwNoQXO
+          xSgusmg2SVTJZUjDUVQIne0FoFxwpBY/QxsI/UM38zRW0i6AVVhhOfe9Y/MuJHS5
+          EoMszuFT+ozB1ohEfW7eJ0Mb6wpgxAkWOKau4WNPoagWfPVmYVp0EA3ys/FeB/wZ
+          AvpQBF6cy7YaPi3tCqITbCQHrJiHGSwDCFayIWlHOsrUV/9IskMD/qGF4785+OxP
+          4cAoL2bfQlm+pj1Be+AL2CfpTYcStnXPF3kAL2I8pmztZ2ASTpCDhoHxrTSKFV5k
+          6dGRpsN5hjcpDQ==
+          -----END CERTIFICATE-----
+        key: |+
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEowIBAAKCAQEAv/VfZ7Opv5u/Et1D3SkyHQepOwkWFOzw/l8KD9rs1cDhun/y
+          9alBki8atLHnnR7lZSaAOGed1XKx9zaNjJg4oMB/x7NktJ8vsaOnHQ5QZnAcpD/E
+          guHuNwZxtl/QqVoTRe8otcBhbR1O02b5GCz0r42R0pmETg8L5zTmaRJmbRIp9kE5
+          j/K7zAC5ym0ITX0A+SitvNJvXkN4xpe1izpMpvjtRsu6/yuN/aMNvLF8/XHBwUrV
+          ab1RNIoClQ74w9aIzUssaIRfU5pupBusABU2V5DAlAm0EGB0+FM7rFtpmroDbAeJ
+          xCEG49FqqG+WQIflI0brJpSY2PgGsVW5UMIArQIDAQABAoIBACnGxh+0mzHnPHtn
+          ilh8mbp1q1/8x0CAnKZPmsn+lGKk2ruTExZh4rJk7AP9X/HzAmu0KF2eN1x33MF3
+          rvC1REW//08//J/OsTuQ6VLKhbb1mVYpxqPRdd2l2mOdkLT6tI0Y0pxTpSBxK3GY
+          zId1aT83qU/TN1chsS59ddPSPFZqJx2egCzgM+h0wEczkqqqndYx44d5xCOkw2Gv
+          6e/6mtKvMQA3okx5PLdeSbb7MOH+HvjfESc0wcHFuDK6/kEC+nC6mViY8PDNwZ+A
+          QDrVjv9nmYtgNBOU5JlRk1gYRnlJH671zgXZsbTRIL2ajnKiKn+3jKt7EZOFcEQr
+          3G4qtSECgYEAwEXenxOCfai+ofWG8A/DdFa3poz5ZBno5U9RWvBLcCeQKwHEp1Vq
+          AAlCrIfYZDtC++8AWTnPQkVPHOghRCkN27XUbppUtVvZIfKRB0nav/qAnKwalNhq
+          pnk4TeTYgbQ8sM5tvk7+Otgolk20JgzI8ayE9lI9cuCVqnHEL/IUP3UCgYEA/5TS
+          trZemmrTOtBuquBZ9uAU688QYuJpD1/h8EetkW6E9i/7Binz7sIVqJCjeAtE4s74
+          Qy2CK5tUfghWRiGb8LWEmKqWzfWNh0FGll6STjabRzqp1Rzpi2askb7CYS++p+xs
+          BrrVzkeqGAZ1XcP8vtdEHLp/zP0fU4ze3bWjDVkCgYAV2Rql6tqeGsmmr7aomrH0
+          C1KNC2HfXQ5Y2D1/XuTDlstMB8Rn203TOTopTrppEU7YP91DRk1l02hc+YemLiAU
+          AkJkWwcbIJe4ws52DI9d10I8C1Zt6XWc+xNJzqJHgsqOsLZJtMIwv5VFFwlMdZFz
+          3M2zC79NyXVYS9smM5TXbQKBgQCP9xDKgue/K7VYR9hOwJlsisS+H6EnUknDs0rd
+          wkJuzUZwNo675h3Vu9XfYbnzAMYIzHTjwlq0nYZ2h9OxJXVlnZnXNSBFW7AhJA/S
+          2+qly/SjptPLi8GyGF/UqRNtEyveAzrGf6+3xn51kg3Ch4dzKGbhl9wtZ9ehhJR1
+          Zr814QKBgAmEd6Dy0WwLs7W44peam433iG/btqqBqdGBq7+DaLqTnab3ivOpoAKN
+          LFjWZ9dnozPhjfB8aqCcedyGZHQ6kaNBUks2MA3cAUderksadIdOzsL/gAUCyT/y
+          12Gl3q+vbupKNj4BwOrSKi8OQpcl/G3Ykg62fXj1dV8RM12fdrTn
+          -----END RSA PRIVATE KEY-----
+      metron:
+        cert: |+
+          -----BEGIN CERTIFICATE-----
+          MIIEJDCCAgygAwIBAgIQZLGE68iqsrcYNJmBd+WEPTANBgkqhkiG9w0BAQsFADAY
+          MRYwFAYDVQQDEw1sb2dncmVnYXRvckNBMB4XDTE3MDQyMDExMDUzMloXDTE5MDQy
+          MDExMDUzMlowETEPMA0GA1UEAxMGbWV0cm9uMIIBIjANBgkqhkiG9w0BAQEFAAOC
+          AQ8AMIIBCgKCAQEAwngvzdVbfTt7U48XlUS52ucsvzfPAAM+5KKaEmNYffp01yiD
+          rbO1Xtg2Ehw/ozFq+M8BWnzK5/IxgX/fxEymHapz4MmnUEdZTX6+0Lj/ShPkSKNu
+          tEp0TxvuD9RJT8AmgGGYkq4FiWnppvyP5eYwM0akZd9k9bvEHcR/ON9GU1ZrZiNq
+          HTiJRRTv4+WK6MoLSLlqu6osHOLtHXeZVTLctlF3zTpl1Mp0EvLQapCXF7hKfJeE
+          L/iPNn8b43Wdw9pXd46F+v64XErWLHr9+7c4p8IUUXL8XxzbZVqbaR5ccjfekaDF
+          fD9+cix8TyiZKaO9Mi+CE84P/vjPMll+Vep5QwIDAQABo3EwbzAOBgNVHQ8BAf8E
+          BAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBSm
+          cKQMX5SMesK8YPY8rFNXIKSWXTAfBgNVHSMEGDAWgBTNcX4AjTQNBAAjlYR3Fj1R
+          rBqW6DANBgkqhkiG9w0BAQsFAAOCAgEASz6QAhMdsWSvQ8Et4Des8FBV1JnXzAU/
+          mAjWYJ3hqy/xLYIgIxiKiRVUQxxnKBWZfao2BcQtDqJAoM6erEzVHJlWqt5kQTo+
+          pR1E4C1E14PLMIA224DZkjZaMeMfUw3LXiyCOD6f88VKy3XTxmoJjQTKrGmCtHhl
+          6STD/HGnbMoD380LoEwQZxdpEbw+UKjxHRDKwf+732uKSfV6swZJ/wts+AQ9eohn
+          vzAMRff1PwBuGeo3q4gfrcD2mPft5Cb3Wv58gN5eavMQ1dGyaRatGjCAq9/Rk5tL
+          Bj3cmf8ktWbXznFuPU3d9i7xYdJiDG3bbU1xrOAfBeOWgmvQEh306T8hyDSrI9d8
+          lM7VrVEnBFMF12rLiVyuwOywzwz1RIBd5wDQ+TFfZYNXkOaYULWE5EGNRaZaDLNt
+          CfHJ72pl2yOHOCD288JqWR3Wk2GzGUEUupC0vXW9FPPktqy9mpfqmBHYRtZWB3Mk
+          lkGl3+NgVYzqw1mJ7rUva26lykP2qtgxdZGQwkFAzq1HmesFdyV67SWvrjuTPFMN
+          NUOx980HbiYOf89o6BFqX3/r+Qz5yeOla5zf0/kmucv4oP6wFAoFetkO9fcmcSxg
+          m9xRmjH7eL8jdC0587KI2yvQF391ur416JyvWL1TBSDxKHbmGxNKzDJUPNjYAN7m
+          T6NqYLSXuHw=
+          -----END CERTIFICATE-----
+        key: |+
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEowIBAAKCAQEAwngvzdVbfTt7U48XlUS52ucsvzfPAAM+5KKaEmNYffp01yiD
+          rbO1Xtg2Ehw/ozFq+M8BWnzK5/IxgX/fxEymHapz4MmnUEdZTX6+0Lj/ShPkSKNu
+          tEp0TxvuD9RJT8AmgGGYkq4FiWnppvyP5eYwM0akZd9k9bvEHcR/ON9GU1ZrZiNq
+          HTiJRRTv4+WK6MoLSLlqu6osHOLtHXeZVTLctlF3zTpl1Mp0EvLQapCXF7hKfJeE
+          L/iPNn8b43Wdw9pXd46F+v64XErWLHr9+7c4p8IUUXL8XxzbZVqbaR5ccjfekaDF
+          fD9+cix8TyiZKaO9Mi+CE84P/vjPMll+Vep5QwIDAQABAoIBACor7hHw5rotn/zq
+          1u5jzPoPj8CX1afnDEiAinDaYmJPYe8WtheBFR/QO0mKHrLBELWMDnsU/Nt3xgyT
+          Mm9bP9rHEAH7OPFLx63qgm6474Oc9LBb4LHwQ3C0WdfM7WkB/ldw0qlcW48FDMpN
+          ktcEKAe2lggRfc9cPJdH+V7X7GQ9xEn1BKGX60dC+XvBxyoKtH9Kif6CO6dJE3Wo
+          agTsD+ZgBSBZ+BZLrvKB8YAD7lmn4jili22qr+2s6BSO1zzeGDqueYGkS6IDHAzx
+          DjrDCn092GTpFkgAHxqaGgm+M6r0p3DPZPF+ahrTGOUpwNbKJni/jV2e6XGOQh8s
+          lgeHOeECgYEAzWai6icLPA1p2l0GJ2T8sCJtHbRAz8M5Onr9ADW+zZFl6FGt8e0i
+          42uS0TqLDCvGke8SGRwPuzQuW6vCVd5//l2xiBZ9bt7W6zlp6Zp0OCNDAht7ohTA
+          oBadhyfDjwHZFHgqxc6I04SXLR07Ulr3ESqfacCEicdjFs68hEXSyhcCgYEA8mAs
+          Ai8o9ntbPL7xNHfhRMcQHU/RzADPVNiXkZr8E//1gzokVHxNMJG+T/6RfyYMvhdc
+          Rn1a7fDvl+oMRLsbSHFt9OJPntRxJISXZil4g5Md6nXr6Ti8gk00K1CNpUkGMdPh
+          QJTLkeddeWmlsW8m69Cx69kniF7JUK5IOOPUgbUCgYEAx7s2UFsHIa4pcJ1kjoo0
+          7VGMqYXOQDmmPKe7vaiFkYABiJdkfgwKEPtaGPrEm2E2BlJjVudipLdpHNs4biee
+          bsrNB3hXIKiwdKuvwejfendPgY0X+9QSO5nCNNsF3tn9LVpsvUzI4GXeW5BBTyQF
+          fDvmJ/984j1wrYz64+TBxKECgYAqXiVTPGssquOH+tivE0WNgD6Q4SMLRhj3++SC
+          z1TBKj0Ac2lmW1Qi6VcbJKTKVRxlHjBDIiaC8VrwczkxyoM6ZpmR9P12BizA9WyB
+          rz4hwdW45mQWoJRTMqur5qjb+6fZjfASGfB70LXGQ3FzUrq6/gAb+hmu/OKz98Mo
+          Lqs3AQKBgCtZPKvtrol1SuU59rtKUzp1qliIux37YxMsORZfLOwxBxY85hrLnj11
+          5ZDwGlMTSxXzy/ZuDzWi8hl1dCGYGX1o3J932Xuj1Ee/l8vrhfRdy737Fl3aL0BN
+          zkQOr1OLuoMw+t1l+r2fTw34ZPCRT6mPcnk1G7b80rCgJQeRLRqD
+          -----END RSA PRIVATE KEY-----
+      statsd_injector:
+        cert: |+
+          -----BEGIN CERTIFICATE-----
+          MIIELDCCAhSgAwIBAgIQauywM8Pfj2D/ddB+ITQJozANBgkqhkiG9w0BAQsFADAY
+          MRYwFAYDVQQDEw1sb2dncmVnYXRvckNBMB4XDTE3MDQyMDExMDYyNVoXDTE5MDQy
+          MDExMDYyNVowGTEXMBUGA1UEAxMOc3RhdHNkaW5qZWN0b3IwggEiMA0GCSqGSIb3
+          DQEBAQUAA4IBDwAwggEKAoIBAQDwwsYwldYjSBMCWXV9odIYJTgga5uj3920O88c
+          qy66SOdKyoKytc6aiPwDDpLqBNAdPrLFKmbd4a7sP1U7S75wU1MwpiWS4V3Ph+GF
+          3A5TM/LnEMHHEM/s6Wj9XAaMQz9WD6xj6xUuU7Z0m9rJYAPE7O3l0LP+ZDPnzU/i
+          1K2zwVdBOz8TkQh6UJg/+HnRCzOBSfNlZ+fnARtOfYRPu8WhCAYjS4ZWZsldDira
+          vHtR49Fa8uptSKp1sdmTUwzBCDfLEtmXOg5g3XnOaZTFtigM1sViNFN0xpGcjTWL
+          ABzElCXrCv0WvQsknZE6VAQFCzRlB4mWZ7ycumF6o7NuIqfnAgMBAAGjcTBvMA4G
+          A1UdDwEB/wQEAwIDuDAdBgNVHSUEFjAUBggrBgEFBQcDAQYIKwYBBQUHAwIwHQYD
+          VR0OBBYEFPYfJJTPJr1TOx+feSEPOW4eJKI+MB8GA1UdIwQYMBaAFM1xfgCNNA0E
+          ACOVhHcWPVGsGpboMA0GCSqGSIb3DQEBCwUAA4ICAQBeCiWp+2FIxUID4C1pvHhv
+          imq6XK8S8VHk3ZGVchyjwczB2Ai35NDp4yfNFgKlVzf255Vcb/XyPLaHgxL09pcX
+          LzEa5kLuffFzMNc/W0d2p8oPhLWUDXIpawqO58FnKdb+aYgT3M2R0TYI09RSBA/Z
+          RX6GCHsXd3ItjzIbZHmBh1iu0Cc042e3739wBZRS1Ue2V6EomnqZ1hNHkgCBIK0O
+          W6gfEw18tfFscfUw0SQ3Cn7CM1KBBI4yUO7VvFhIg8N4QWgelloTXrwqTCCTUoxl
+          z0xHS5ygLe/r5apq9fxPj403FlC8ZS1KFqZAie7nSxhID8/bwsu6vgB8Sq1V5j+j
+          jXerggma3F/KyKfG+coVBedOw49uBOTMIBCUHrhlSWHKRRS0+usZt/m9+w0RSJ/n
+          snTSW7/VQDcayvKr9hkAotIW7QuV8tYMoFW9my18jvNiaP7uIh43D5cnuyMyMz8F
+          A5aPTOh6drMZ8UW4LhqP8m6nnSwJGgbylg8sSw8e1flWDBdHehqQjsbqFb8VGSX+
+          VnMlUwkSrUQT1hGpo+mO1kTmKzoyq5kqgYpNvnd9ASo84q7q5sUF3RPJFk6aExsK
+          nZ1lcRSJTj0ginB0n+xGzYhvsYYs0o88fRZSHZNrelnECyMqIy2ajXpPP2op2ojv
+          hA/qPgqBQtPZLI1kpm8I9A==
+          -----END CERTIFICATE-----
+        key: |+
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEowIBAAKCAQEA8MLGMJXWI0gTAll1faHSGCU4IGubo9/dtDvPHKsuukjnSsqC
+          srXOmoj8Aw6S6gTQHT6yxSpm3eGu7D9VO0u+cFNTMKYlkuFdz4fhhdwOUzPy5xDB
+          xxDP7Olo/VwGjEM/Vg+sY+sVLlO2dJvayWADxOzt5dCz/mQz581P4tSts8FXQTs/
+          E5EIelCYP/h50QszgUnzZWfn5wEbTn2ET7vFoQgGI0uGVmbJXQ4q2rx7UePRWvLq
+          bUiqdbHZk1MMwQg3yxLZlzoOYN15zmmUxbYoDNbFYjRTdMaRnI01iwAcxJQl6wr9
+          Fr0LJJ2ROlQEBQs0ZQeJlme8nLpheqOzbiKn5wIDAQABAoIBAA9aLC8e7tezGds1
+          fyNytSXrAag3lGYfuVBr2+oVFFa2nWEMhscEhtcd0wwS2tVnVyn2PIoMCSEu6euQ
+          oku0qcEZ3x0kCxNRoZzBKmVRwewWTO/lBqY98TRHMfWt75D0HM7NEw4QCHq6xdCr
+          u4jJwZPGE+lqpH+dPh4S3nw1WZozo0KaKXqdguPOD3MrQ5AejS5mrIt+pFXZPFm8
+          yK1g99QLSQYhdFLKYLZNsyKR1iZLuf3mKpEDljgJlg0r+j4pG+l6puLqxI8DKK/4
+          9OpxIJUGbzwUkJI/0zfgi6EZDopo0CMQx9iTUyu6e0JFE8OfldXGxEF+eGZ8LImX
+          C1PobeECgYEA8N0yxYa9Tnl4BkHaBzS4lwvIh49J5yMUAhgl07y8fqVLN+4SRMvr
+          WEiLesyWB5WEvu22HukDgGARAjwRBvIPZuzJWNAu/e4kkZPDJObXNP4Hk9tTqQ/3
+          9H69WN0FMB+E3H914LWGFCoJYbIl25/SxV1Xw1vKrL79OsPrTVa5/fECgYEA/+Pq
+          VJ/wu3RCp5pYmT3LJlrtm3w9QVz6AwnMm24UdcjDatIjmpiXCeD3eywrL6tZW3hQ
+          zE1PzyNsZfdDh1yz9OnkSARiY9WsH1qWdJAmnuEMUE718ZZ2rcwLzaG/ZzHfKk7r
+          H5rJkoLmlFFVTM0nrpgosm0rMEZVYK3NWrNEC1cCgYEA6pGA8HzXv6TsDqvy+TGO
+          0wrWr64L+t1ejuuVay9TIsM3DbD8eaNd/wwnSeAT/C7QqGA4DMJAdrUX22VD78+s
+          0D+plqSoHwPc+Sk90qI8047RMl1WjD7Q63rCS9hzRPptGY/H7J7bhKerm0kzNT/g
+          s/TDk63BI5qcYq6KaTccywECgYB+1ZV8xJoqEAJJ2PM5YaukI0XK39Xs5Az4HI9S
+          K0nw58YU2HvVUPTsbJm+b7IoOqJb+FL0MQ3x+fjswZazLXv1VUlVePbbzTk3gUs6
+          E4lRDvNvivPU/2Nr2cuv7RBWMh4PdnaMf8iR2lg4A+hn3PhiTgE+D2Zs0y/Wb89t
+          uZVsmQKBgBtY+VtfEZtvsx7BzuUV96gFLTpUSIWzDOaRavPUu/oQyiLM114iz9wS
+          VzWGqS15CieiVLXZBk2yRlK85SVpaY2kDeAngeYYux1AMwe9m0c7S/DV6a0H7HJx
+          LVUh7QuKhJGEFM3xvQVlzAAexNx75mHaoUYt0wDFifrpenUDteDP
+          -----END RSA PRIVATE KEY-----
+      syslogdrainbinder:
+        cert: |+
+          -----BEGIN CERTIFICATE-----
+          MIIELjCCAhagAwIBAgIRAIpghe2pbZq4LfuEcveC3DAwDQYJKoZIhvcNAQELBQAw
+          FjEUMBIGA1UEAxMLY2YtZGllZ28tY2EwHhcNMTcwNDIwMTEwNTMyWhcNMTkwNDIw
+          MTEwNTMyWjAcMRowGAYDVQQDExFzeXNsb2dkcmFpbmJpbmRlcjCCASIwDQYJKoZI
+          hvcNAQEBBQADggEPADCCAQoCggEBAMy5cajBH6Wr1leX3vLF74usZhoLd8CeYhK4
+          v2Qw98mHQ5Xob38O6BgJjF3Lby9EvwDVU2CM1LUS24wU1/VJ46/bbGpmO7BbQljs
+          pVFZbX2fijea1Au6XhUJ8JbQW0U5DNe7NFSvwhRGs3yIPx6J5K3mKPuDJG+g36XB
+          TSNA+R/8faeCccSGzS4NDbBuG1PaD0+tu7MVXEiVWcKxTKaMX+s55ADfCIHIsW8p
+          cJVbQk9x75SIyVzsSAD3DxW22cUS2zoG2iQWbxSTOKsuVNiN6UifpFN1y/rKV+hy
+          hO1BFCQXR3uz4hx+odRuSLYzgDv03AZCZ+oZRjTqDGGq3mm3/ccCAwEAAaNxMG8w
+          DgYDVR0PAQH/BAQDAgO4MB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAd
+          BgNVHQ4EFgQUVaWX2QE3ogiiE5wieZvN/085GZ0wHwYDVR0jBBgwFoAUKppYysHD
+          s8ZIEnU9Kr4/dPDMDIgwDQYJKoZIhvcNAQELBQADggIBAJfWuXftPloNE+Fss51c
+          ul+LScvpBGuWTespcXUMlQ4ZpIGzHwZoHeGtmWzaVLCMXpx2ZkkvESEOtLmA/C1r
+          jqU5+JkzgS5AMGVCTb2fKuAdBC4iWS4oU+ZPV3RiEK+kEv8vBTGAnsa9dXdnFiUU
+          1Q/pmyKBEVvpc+EdUzAniUSrb6x3yW8aY0NPitH/yIRgkLaWS9FAbPV6Nap3HTbz
+          wdzTv7uiE46H4mYICOLT0k9CvhNijeEqfJRoATIJ+YYA5mw2AazDTSRoyfeB2Bjn
+          nxmLOICAP3W1hwYbIM66HgGBUtvZmayFJIgW7zypGC/wgQEbLIpvZi5whLt/fQ4g
+          mxZj9qqenFCO2Nau7n7md2V+KbfEdrLPa/dR70+Yc/mAVGv/PJ19lgvvY5Nq1usR
+          ljSPglnTMus/smOtYiNqVXY/Qz0ePrFiIS4NXAt1mvZsb7tS7XIOzk0huHUcdlsF
+          hb8lIzux7uetlj4VoMLkoVvgXxm8lNyIPmxYOLA0fisa+91ZLWniOzDb7Uq27CIf
+          WWEuhrfBXOd1kLiZcIXP/+Il8aZ1flnBUIv3V3rxFVBsq1IFUDYOU4jUwOBlV8Wy
+          qjMtLgwWZ2hNv2Dga7UgFhGbRgc6kVdhRPsgz4a4wlreF1L0247gKWqKmfDinLTA
+          QjmRu4aCqOZWtXSJ+hFmhFzB
+          -----END CERTIFICATE-----
+        key: |+
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEowIBAAKCAQEAzLlxqMEfpavWV5fe8sXvi6xmGgt3wJ5iEri/ZDD3yYdDlehv
+          fw7oGAmMXctvL0S/ANVTYIzUtRLbjBTX9Unjr9tsamY7sFtCWOylUVltfZ+KN5rU
+          C7peFQnwltBbRTkM17s0VK/CFEazfIg/HonkreYo+4Mkb6DfpcFNI0D5H/x9p4Jx
+          xIbNLg0NsG4bU9oPT627sxVcSJVZwrFMpoxf6znkAN8IgcixbylwlVtCT3HvlIjJ
+          XOxIAPcPFbbZxRLbOgbaJBZvFJM4qy5U2I3pSJ+kU3XL+spX6HKE7UEUJBdHe7Pi
+          HH6h1G5ItjOAO/TcBkJn6hlGNOoMYareabf9xwIDAQABAoIBAC0zjLrb2Sb1J+Az
+          MhCcT2WhbPG3Mnue/LxxeiCfBzbB3NROe7+sBOa5xPo4npXrMdj3QO+CaLyKK1tk
+          hsIrzE/ZvLhJVkh7/cwwg9fQTPJ9tUDNuJ/WSEuQ5EQIQP6puAIx3T4NiGZ9rceD
+          NZyCibEzrjzKGdNjy72HTobII7lB20sJoboK8C3VoORAfGALO/YOgHzbPBeeX0VJ
+          KOqjx3L3XK1roIsRwBSAAkEQQ05Uozqxo6+1A7onVtij7kSh+arZzlJZtt+/J89f
+          dzwlxNHGAi6Mj4Ga61qdXsYM6llhOj7pIQESaud/kZh9yY0VlCOc6tFL7eYeRWoM
+          LMg36pECgYEA4msRaC64eYDITDHycjKec4NWqP2y+43db0w3hsw1SnGwrUBtRS1u
+          UjygvFBu4dtGHfWYQmE6k1VnFPWSxj4k1XYGAM0JrUa6VEw29xsehN/3YveF1u3J
+          MkwxlHvdKZjxn4h4m0MFfWRu/THCCfa3TfV7wj0qecpw6foxs9ObLE0CgYEA53jK
+          HqTnKYV3KiAXOyX7LNADBwsWkcqP4Z96Q8BJGxZpjUk7V/+12nghwpSiIrLxTV50
+          kmxy+xARdpHiotILdNHrGk0tW+iz7JISq+i6Ed35dhssG7ja2E44WhK1nBfN4Ec+
+          QB+B6vng6qLZPb9dTsdWHq74yngOtXzsSi1LTGMCgYA24hkwFdMlsK/cuGa6g8ag
+          3X9OK2ENVRAOAH2dMTbhurlG5c0W7bJGQOf9fcnC+bH/ZR7pSEQ4noUEMZrIbxvi
+          ml9OJmVoGTLlaCwSrgIx11BSLwnEVZNlm86Q3Y14ndhEAYKqsA5OnN/ChCMy4xj/
+          zreXF9iJ+SZxsPIHUw3UKQKBgGTqCFRr2EwF3/oBm58x49uZpHhBoUlWYnwfJxK6
+          liS1FLeAIdsvpHzmuvE2E6nFEeaFM5VSqp5CVxq2Z3RM1qnLixAgbZIQVcDhvjos
+          cFKxz7xqBEThxqdfErpSRdMTnbIV3VHfaqii4Cfrb4K4F1ntFeKyrcy3otIE8I82
+          SAm5AoGBAKpb8rGht0fsGq8EznQP1Ici/O0R8QWlTYrgqyRtbAHBkh8PcNmvoDtK
+          h80bVxFBZdkHj5VGS1PJDSDFWQLYBFbxRCfu75NsIwEIbEhRijljFTceem+Pkbl0
+          +ArQ5K0oiB8Pswj8oE3cqylwe6ykWRXmxo+KvH8TU2ePbbvAtH93
+          -----END RSA PRIVATE KEY-----
+      trafficcontroller:
+        cert: |+
+          -----BEGIN CERTIFICATE-----
+          MIIEMDCCAhigAwIBAgIRAN5Y3pz3csScKV+RrZV0pkMwDQYJKoZIhvcNAQELBQAw
+          GDEWMBQGA1UEAxMNbG9nZ3JlZ2F0b3JDQTAeFw0xNzA0MjAxMTA1MzFaFw0xOTA0
+          MjAxMTA1MzFaMBwxGjAYBgNVBAMTEXRyYWZmaWNjb250cm9sbGVyMIIBIjANBgkq
+          hkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxQI+JqPavUhbfVBrqVmEqSzNj5zEtm3z
+          W0KDBBJy6Iy5eTJFXyOPNvzvCIlJ6WAGxLagmsJ5qX2GY68Xg6ahaROOxdAv4bk4
+          /4tY+tHBcIxFVjIRq4BZrmXaIu7G9SA0RV0Sddmq3W0YP/NbH/b7wxvqVaj3K+tM
+          WkjzmllBh+yzZaEo4N/u6e32Xxv5w2hAg/uxwYmgnM2gnvrCevHUarZ2XlGxBpf4
+          LPj2VW1TMimJPq4biZ6Gqjbr5OCyll25MoOYXlB3XAWCU85BUX4IDYW7O6iOikm3
+          +kVg9ygo8W+moev7vv1FN2brTlORttgXda0uJgjKfyrlEOnlgFPAowIDAQABo3Ew
+          bzAOBgNVHQ8BAf8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMC
+          MB0GA1UdDgQWBBSztC1QjUX+pUumDfDuBN9NGerxujAfBgNVHSMEGDAWgBTNcX4A
+          jTQNBAAjlYR3Fj1RrBqW6DANBgkqhkiG9w0BAQsFAAOCAgEAWCi1Usg9ZclciPMG
+          6d2OGh8d4gC1OXYIar4xST+6lyYLRpRBEWtYyxYaXXjxLUGj955TWyX93ozQLSBc
+          kW7vdOIm57Taz+FX1DeQnCOGx7s/K1oyBGMKwhLM0rH2D02Z+gqyBFFkLITzR0eI
+          QTPY2otatLuMDUOrv7LgAQVG/lPUg/q1i5rhIYlEdyB7Cf/YAVZ7yPUVgPoO/mlJ
+          b59dWK6ffI7yX78ojR17wiJ6J3mDKYEL+zGFjh1VsDw7cvDT7HeCf77fXM9E/kr/
+          BCUUKdzthHvOlDCGkQur0jhPXfYRlPuANcQO920G3aHyfP/YeqFFSjKO2FeJpCtP
+          N7Yk+NNxDjelF1cqIi7d9lTzk4tWBwcoyjR99PVWyeBaLMuovIjV+kFPx9W9xunI
+          uoYo8SwJQ/X/kQJezfwwxgLiKuFoDDaLHSg58oOEMjARDS/sC76g6GAMw40e+Osk
+          kfvcAhu7cY4P6I57Rh6rHeh0UJdZv1R85zBxbFeq3DdRYomvYHAGlsOIRC3zhq0C
+          O1DKXHGHKKhdyxD+Xuei9hai83fhQSZ4tGW0nwk5mJbi4YFOm3gIVaMo/+vapqAG
+          4eLq8zrahWYqELZkCfaOlHWw0vtgMTdpCu4Bt9PdPFvJUWFZ8WCEzQ580kiTw6PJ
+          ANIf/F71HQwlPcX9HkUv3mNfMq4=
+          -----END CERTIFICATE-----
+        key: |+
+          -----BEGIN RSA PRIVATE KEY-----
+          MIIEpgIBAAKCAQEAxQI+JqPavUhbfVBrqVmEqSzNj5zEtm3zW0KDBBJy6Iy5eTJF
+          XyOPNvzvCIlJ6WAGxLagmsJ5qX2GY68Xg6ahaROOxdAv4bk4/4tY+tHBcIxFVjIR
+          q4BZrmXaIu7G9SA0RV0Sddmq3W0YP/NbH/b7wxvqVaj3K+tMWkjzmllBh+yzZaEo
+          4N/u6e32Xxv5w2hAg/uxwYmgnM2gnvrCevHUarZ2XlGxBpf4LPj2VW1TMimJPq4b
+          iZ6Gqjbr5OCyll25MoOYXlB3XAWCU85BUX4IDYW7O6iOikm3+kVg9ygo8W+moev7
+          vv1FN2brTlORttgXda0uJgjKfyrlEOnlgFPAowIDAQABAoIBAQChXmnsGpDENC2E
+          Ysgc6g9Ix0MFHELgrwUDvmI0hqwKoaIWjL/X4vee8eUVV+brutUwcerxeNRQqVnX
+          8wZOtsFFoVhz3UgrGx196/URVZieCLeOl+pzUOmkeRcJQA5FoIBQRKEnWQik4IRZ
+          dYsxjou/z/DNA16aYdyjo1euGOgdXavYxCtPtfBPBl8phuOAQefpaZCKXXKK93y2
+          eomolxfwjgGGa+bZokx4yq3M3i5s0gseB4S6nH7ppGkF7a1H9JGJ/k0iLqu/pA2K
+          ortc0+ILRBBbQ+8oin/xeVKPeUNSFONhNgKnyLBcrIsz2GBcz2LTPUd5WRFhvEhi
+          6hqlHAn5AoGBAOE3k+abCd10LDqTF5g4DkG8RDtloMfSxF3LS2qRpFE3PIX+2qYl
+          /eBhp/x7fVfe0ZEVUn2Zzs6v6QRWcbiMpE2aQCj2GoArbjK1x1zDw3k4h7ouHpvx
+          qSzMPBoMsk5U2Ok7CF9tGPAgnbVxOLyBfJcJDN7XrKjaAGs5rkMM1r71AoGBAN/v
+          pU5FntM07zktSdNn/PUsjZPDtHrW80N5wtj8ckYFuni0XSpCToPESAzvE/7DkXa0
+          TUhhwQN7uLXvKayC82X73iDpybFJHR79fCVjm8jlxzwlznSwm1pQGqUt3XH8H5r+
+          ZUXyQl/obr6mB9jIws2FNZ78oyClB3sn8cfQhZI3AoGBAMQFTJxtGrP91jURK3sY
+          Zwg95aFQ/hSN1M3SEIzrwHnTusDhpcrwzDwMo1p03Q6q5/n/9fFN+psYrpZQ6t/2
+          wVatx+Qe98fQhTRr1N5foPYUBsY8N/YA6v8Lr8/4dwUIglbVQ59S5F6z9LAkoH4p
+          sZf/j40xaJz6SV0KMis3tH01AoGBAJpYv/RSEiV7H8OmDnNzAiwumCqXwmbEjwkb
+          /Iu4fD79JciacHh3GUzC1fJsOrjnLPTHU1knX3S6KtbjUDMCUycg0bqXyRez0CmT
+          B6VxoWd30LoJSOKu83TtL2BYW4B8CYC4BS+PyeX2+5XWNCRcQ8CKJyo88WbHuH9P
+          SduyQs5DAoGBAN7762062/hzXP1l6C3S9q8KCju42Ko587C/Q3Sla8zlppDmMrkm
+          qkTA1nRjXh4uWQxhFaJdxjuOVCuVUfH11haKA/+M5nGsg0/c0VVtsKDiLUwpfE9V
+          SaXWhFclw9ecqG5taQSLMEvrBmXN4gk0auaSYlNd205JgL7p3DVsOd1S
+          -----END RSA PRIVATE KEY-----
+  loggregator_endpoint:
+    shared_secret: openstack
+  login:
+    analytics:
+      code: null
+      domain: null
+    asset_base_url: null
+    brand: oss
+    branding: null
+    catalina_opts: null
+    enabled: true
+    links:
+      passwd: https://login.cf.kyland.com/forgot_password
+      signup: https://login.cf.kyland.com/create_account
+    logout: null
+    messages: null
+    notifications:
+      url: null
+    protocol: https
+    restricted_ips_regex: null
+    saml:
+      serviceProviderCertificate: |+
+        -----BEGIN CERTIFICATE-----
+        MIIENjCCAh6gAwIBAgIQLeK6Q+kx1Xpj5slq8gYQbDANBgkqhkiG9w0BAQsFADAZ
+        MRcwFQYDVQQDEw5jZXJ0LWF1dGhvcml0eTAeFw0xNzAzMjcxMDQ2MTBaFw0xOTAz
+        MjcxMDQ2MTBaMCIxIDAeBgNVBAMTF3VhYS5zZXJ2aWNlLmNmLmludGVybmFsMIIB
+        IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0wB5ftDhF+OvlMRG4c7H8m0x
+        KpMmcQPDJRF/Ayb457NJ11n4imBi1P2RTUnmwGsegz0vyX0iemQf5AobyEg/9+gk
+        b9Y35762IO++4vjtGtB1GMHpAOQU9XGH2xFAuMzfnd1P/tL65ZFQ60FRjX/ooilA
+        pIUGAw8TtlmiQvo37MocC9UFGc+kRqV6JehUNZtQb9I+hzMvfDdYCONx0W4/Kmrk
+        qeQlaxpkmxSnfvauCqxffClR4kCYl6LaZqE9Y/9iA3rHl5yfb6CwOIdnyWshXKgI
+        X4jDg3ljXO8KuSkSBpDnCWNFDii8OVYa91IkpnhpgdzOJNUUUGUSFfBoUZryfQID
+        AQABo3EwbzAOBgNVHQ8BAf8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsG
+        AQUFBwMCMB0GA1UdDgQWBBRj4A2eGSGsknzzNge0Mj2yn62mVjAfBgNVHSMEGDAW
+        gBTzTnVVsNYUEeCnuC+vslZXkQ9FkTANBgkqhkiG9w0BAQsFAAOCAgEAH9woQ7lt
+        F/o9VipP5usajMs4AMhL+3PlRpYaTnZt8m7G3zST2bwa4EItY0EyO4oTO6NKrZmW
+        DeS/T9rKJb8FT6rgOip9W/IvdtKHVE8Ug1KQOrz7U4BiNTuF5i/nEyG3ZSOGvAyp
+        eaqyjp2eSJUGDxOUD0m7QuDoRZY1Nzs7irrt1rUMB9PIp6g0i1jc9dVoCd8xtaWb
+        Wkes4HPpwOz1wSC37tICDB0eQ37dZsj0eouUH84PU9tGPlus6GShtRl44vWfE4dG
+        16kDgP6a+e+lEoLI7R0pihdwmaozDSFEadlRqbN/0NLF1pzDdMV0rB48UyYXQL37
+        rnZ+vnAwgDy4yIcSKXshbdUNZA4kFIDWHIL23GUVdFsJJgy35iLCf66YoWe0rc7b
+        hV7ppCfHvDnJiTMdvM6C3NmJr3RamnzF2nyxTbIkCU2kKvL3tyYlphJ+fRe3nJ0V
+        VR8dQ9vCEX/iG2go2qVyxEIqb1/dCwasYO+QfKyEWhQPNBmTlthP5HGEVmjteaLg
+        N3vhmpIq3cG2/L7jjHy4tYyRxmqTM6YraJOFLi6XHnvk66/qaQ9zLmX6xF8NzqhR
+        pdsvVCXuvhozKyBktYdiYF9zJ3PxxNzyaWsDG79YHRdp/+9QL9Uw9tO/ICihXwSX
+        ln1m5PwJeuXc5lY6ZKrplK69Cj4Vd4e2M8s=
+        -----END CERTIFICATE-----
+      serviceProviderKey: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEpQIBAAKCAQEA0wB5ftDhF+OvlMRG4c7H8m0xKpMmcQPDJRF/Ayb457NJ11n4
+        imBi1P2RTUnmwGsegz0vyX0iemQf5AobyEg/9+gkb9Y35762IO++4vjtGtB1GMHp
+        AOQU9XGH2xFAuMzfnd1P/tL65ZFQ60FRjX/ooilApIUGAw8TtlmiQvo37MocC9UF
+        Gc+kRqV6JehUNZtQb9I+hzMvfDdYCONx0W4/KmrkqeQlaxpkmxSnfvauCqxffClR
+        4kCYl6LaZqE9Y/9iA3rHl5yfb6CwOIdnyWshXKgIX4jDg3ljXO8KuSkSBpDnCWNF
+        Dii8OVYa91IkpnhpgdzOJNUUUGUSFfBoUZryfQIDAQABAoIBAQCRL+dpyoLINGQx
+        omj/oZBVkKrfF8fAxgz2KbbSzXNBw01RAFiTpsT6t8vOecZsqoihV23VX+RkgRas
+        jAQX6RcTF0pTJfzr2n9p5G3dsdk8tSmNsogIk+iUBt2rcJCvWFGaR5lux2/anQYo
+        Cpb6HYROaMJRMjMz0aEHvV94ZMIsjJhRzhI5JpPgRwqEJBXUzBX0QFMw7+lbWPW6
+        V9r9diWKmBhF1I1iabSZU4kHTLSeE8p8v63GertXc7jbf6ktq8gqUWyAq6x4dJvN
+        KmjdMLL0Q0v6uD7hQmFF/0klnv2sK88MIom0Gy9CdnB3XDdXMBB/Nfz6CP2+PcZ0
+        Qadmd2wlAoGBAP7UVTLzh0IX7e3hHNweLuvvxOGZfBVUk4xM846Uc5KysScp2/wQ
+        HNMBLk0tECe8xYcfvulMrMfxnsIj2dX/oLPDpvgTaXfrHFV4hYAiYWoWgSqdD0PN
+        v5ncZXIuwblgtgH4Xur5JNqmrKeb0zOhynyCNzRBLw5aazrjeBGIuwsvAoGBANP4
+        mkfhsJmYd4IIQLyxHtGwGCEsB7CY1eNu+NI6eB818wbRWU5VwYHNWsF268yHYj2m
+        o+a38UfVhRytHaHYY5M4lI8/ZQ21rymeIdTl9SLlobUYjV7MSMYiMJkklm89tC7I
+        CX2KxCITbVr1jrgjmtj1JFBybyhCZrJtexsI2UITAoGAB7rhKr6AZ9zZ9tFRUswH
+        mFiZnE5PmUYLg8IB0V1ndBe/j/SRG8BRX4U1plmrl8j+JO8tl14gD6CgtDrqLLeo
+        ZEuXEQdlt6GGJoGVayGf2tv75xMEl4XyPfSVjzUj4z+vxbeHCZGtMITFz//GFFbg
+        EY7RpeAkUUck4ZBs3/tJ0TkCgYEAshj2x96AmwzXnJGCkwfedSAXpgdwjphbXbQn
+        q7skolSZ1OiguIilBYKc9mAMztQRXutcWsXCHDDynp11gD5nq5Kmf5UsOtCkU7th
+        gZeU17VIoPf4D+ZkXtTrMEDlhKG7enLoRmsJT/gysXIQb/a6a//Meysq6hCgaNpD
+        zPsqT7ECgYEA9yey0S6EoxOd5nDwJKd1qin5CyCSm7gUJHD8/oKTSbYx8RMFrJkF
+        R6bd+rjD9ivesovijGPI1Nbxg6fT5TEmthEbDK8lu/aC0J1LpZX7gmu1BN6OEEYq
+        apjPresnnY+pOD45SDX2dp82mDslYDFkoMOThdyEls/VrbjnU+JvklM=
+        -----END RSA PRIVATE KEY-----
+      serviceProviderKeyPassword: ""
+    self_service_links_enabled: null
+    smtp:
+      host: null
+      password: null
+      port: null
+      user: null
+    url: null
+  metron_agent:
+    deployment: openstack-cf
+    etcd:
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+    preferred_protocol: null
+    protocols: null
+    tls:
+      client_cert: null
+      client_key: null
+  metron_endpoint:
+    shared_secret: openstack
+  nats:
+    debug: false
+    machines:
+    - 10.0.1.127
+    monitor_port: 0
+    password: openstack
+    port: 4222
+    prof_port: 0
+    trace: false
+    user: admin
+  nfs_server:
+    address: null
+    allow_from_entries:
+    - 10.0.1.0/24
+    - 10.0.1.0/24
+    share: null
+  request_timeout_in_seconds: 900
+  router:
+    balancing_algorithm: null
+    cipher_suites: null
+    debug_address: null
+    drain_wait: null
+    enable_access_log_streaming: null
+    enable_proxy: null
+    enable_ssl: null
+    extra_headers_to_log: null
+    force_forwarded_proto_https: null
+    healthcheck_user_agent: null
+    load_balancer_healthy_threshold: null
+    logging_level: null
+    logrotate: null
+    max_idle_connections: null
+    port: null
+    requested_route_registration_interval_in_seconds: null
+    route_services_recommend_https: null
+    route_services_secret: null
+    route_services_secret_decrypt_only: null
+    route_services_timeout: null
+    secure_cookies: null
+    ssl_cert: null
+    ssl_key: null
+    ssl_skip_validation: null
+    status:
+      password: openstack
+      port: null
+      user: admin
+    suspend_pruning_if_nats_unavailable: null
+    tracing:
+      enable_zipkin: null
+  routing_api:
+    enabled: null
+    port: null
+    uri: null
+  smoke_tests: null
+  ssl:
+    skip_cert_verify: true
+  statsd_injector:
+    deployment: openstack-cf
+  support_address: http://support.cloudfoundry.com
+  syslog_daemon_config: null
+  syslog_drain_binder:
+    etcd:
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+  system_domain: cf.kyland.com
+  system_domain_organization: kyland
+  traffic_controller:
+    disable_access_control: null
+    etcd:
+      client_cert: |+
+        -----BEGIN CERTIFICATE-----
+        MIIEITCCAgmgAwIBAgIQO1g6PmFmanoQaXvaTyE54TANBgkqhkiG9w0BAQsFADAR
+        MQ8wDQYDVQQDEwZldGNkQ0EwHhcNMTcwMTE2MDI0MDI5WhcNMTkwMTE2MDI0MDI5
+        WjAVMRMwEQYDVQQDEwpjbGllbnROYW1lMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A
+        MIIBCgKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlzWRpu
+        gi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzwt/yq
+        Q+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQdnVy
+        Jisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwfMcvy
+        odcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+VFNJM
+        b5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABo3EwbzAOBgNVHQ8BAf8EBAMC
+        A7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsGAQUFBwMCMB0GA1UdDgQWBBTmtABb
+        F7epSt1zn7KNbnr+YxoklzAfBgNVHSMEGDAWgBSKqMBB03ax+0xsV4xL3xvBA/cW
+        hzANBgkqhkiG9w0BAQsFAAOCAgEApMGH/SVC4lostukwjbE0g8WTj/vM8s7dnfl4
+        K1YxOkbx7RFZT4/lusnzKRyY5H+qaC6SikkbhDoAL+RpTBvVMsFlbliesROWTfsR
+        +gSaUm7JINL13WCE7czfPtIaOyYx7kqIqAuaamaMwNzuyCMTy7asxTCo21FHeVIg
+        fNxWfy587BnhuMg0XVCo08+AR/O7ztu2ZAiMdRHXV4CKuWYiRxgtV/NGVKlZ3TIQ
+        gXDrEtxCSoH426edaBgbZRDb5FSq06UyUph5xCGx6stbYygWa7+easHMpKlnBdbB
+        Oz3OPlaE+V1QQwVVG4jF9d8HvvEEE5hBZx3bu42aUBdUENM1RUtPgWDTGZXzXIxk
+        b0LXQ0mK6htd9T7j+BJNalaXtwbJeAsAy664hFn13PllIv1yahETF0cKOZfrlAzQ
+        DnHO8LDSHSxpFwcZk59tSBciZkdxn0P6Kc38gSY+rMo23qDk7USi/+0g4kEcA6Jw
+        rEPeP3ufSfR889hx7raj03gSJG42OO3lJ3iO0EGVp1KOVx4ZAAU78INBPkacOTQ1
+        hyUjh26Afb1LIh4ii7G3wzima3opo/XzL0uXzcPQ4X9UFkX0JyhEMYgNq1t66pQk
+        XuzhJwe/iQ9jgOgyoyidvHzNdkeMueaM0qrwbcXefVdYos54a4AAaFh0WgAj9EhC
+        K+oCipQ=
+        -----END CERTIFICATE-----
+      client_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEogIBAAKCAQEArBp2+bQyrNRr36huekdUP96lxKJ7XXyf/d8ZzjB46Ax6tXlz
+        WRpugi01yNNdDgc12NmzzrRpf6fxFKGRjqHGsHejwqOgJy2oqe2r1yIcPxibKFzw
+        t/yqQ+w7pgS2+WWegIv95l94tgrCmoOyTF2OTrydFDvyaa4MfPwvUiI06SXUFbsQ
+        dnVyJisk1mzg97/NljreoufE1lqt9TbajuA+BgEJYYuUbLcyPu40YMvwJ5UsLiwf
+        Mcvyodcb+XIx3J7++cVX8j3j4WeZlOund3ygACgiH0q05/UfYozPVB0lBeac5/+V
+        FNJMb5OVQnm9MoaoU5C9F5SrTJH+rP2sqqMJ0wIDAQABAoIBAD0tKx2X8Gt/Ftlq
+        Bdtxf4E0o7hCCZgxtK2JoKKqmE/kH7picZ46xw1/BJ9egrV52qo6uK/Bcb7u88Nh
+        q1wIJZiU7qFBiKxkjo/Y7DyM432KQZ0XbHn6VovObWWWR3RfqvgGyzoYtdAAAyzp
+        o3eByhQy96M5q/Hk7IuBGVEY17YIJs5w8w2a8sgxEFVSIosk0lIZ1+FNCCF4Xv+s
+        VZBeoYFzOVlvc3jZLTC2B3aZh8TUtaHTU26Bbg1xiCCukyYGzSXI3ptSMZzg5cBr
+        KV78Q64SPDxHdvyOfwy0h7Zpc+aDuGVAdgIiZBNsWChd6H/oV0+hnIZawqGw54pK
+        r/eVeAECgYEAxICsqWgWVgsjFxjlKMkqaObrN3JjQbBGSdnLBDjlE245/k+7KZCR
+        BGFyedSZ2hlhg6RDYgmstUWoQ4q+cwTxEcaVitleHdWRr5YcqQXnH1jsBJ1VpUY4
+        OvVQe/IXzDuSnrtJdiBQXsWBDq6WKRG3z5b4QbYcodfy4dQ3MM+9zZ8CgYEA4DaN
+        rs7rw86udyopkS3MoUSgxjAcrCHaty79L7DWC/+jO3U74UY1O9KL/ZLdtV7EmSuR
+        pe2E52T6kH766YRnvOLE2g/l9g5yBFrBLAvlTCTiVOiZEbKOheLSm1m+jVy0tUjr
+        +abgdBsfaM/HQuvgLIRo4Ddd6oyrq6s2Xv60L00CgYBGb+l0gD8hcLSPXvkl+ZYe
+        LEg8g+BYd5t6dXt0dACJSoW3R1VLvOp+q3+hdDgCGf7+dS9CQT2LbQC31VAXYroX
+        KRwJvYkjIJ8sVZ7IZ7lFX1abANrmd5lIaQ8Enu8w4lnYVEIs+cBVeG6emK5y4ksF
+        OpSa2XDCAuqpUKzH7m+W+QKBgH0QcP9tFD1ocBCwR/dfIKFj8noaJCQvzhwX7cpI
+        TVzr/1UPE5OY4eC4lLWg0mJ0thzqHJf9YQDhZpJrAfJ3lJXbuAoajB8v95FOPiof
+        iItsl4LdK2SfwLgVyXw2FwArEfF894ON/e1Fo8OHApLll2m9gfJvb8eBJ9Dd87oR
+        QNiRAoGALVvpIrI/B3tH0CEA3+3JKbNQjGKN1vDNIIfhWLWet0lV2wSjCxYlarR1
+        2R5MW8Mk6AmjTDGHhfATREGCB30/3XMNfbhX3tYdQJwcUvKgcPv6R1wIaIwHDQhJ
+        KrrcwG0AyXTclOFshxF32k3bvKSSlasuzV+p2P38/iTw4duR9E0=
+        -----END RSA PRIVATE KEY-----
+    security_event_logging:
+      enabled: false
+    zone: null
+  uaa:
+    admin:
+      client_secret: openstack
+    authentication:
+      policy:
+        countFailuresWithinSeconds: null
+        lockoutAfterFailures: null
+        lockoutPeriodSeconds: null
+    ca_cert: |+
+      -----BEGIN CERTIFICATE-----
+      MIIFEzCCAvugAwIBAgIBATANBgkqhkiG9w0BAQsFADAZMRcwFQYDVQQDEw5jZXJ0
+      LWF1dGhvcml0eTAeFw0xNzAzMjcxMDQ2MDJaFw0yNzAzMjcxMDQ2MDlaMBkxFzAV
+      BgNVBAMTDmNlcnQtYXV0aG9yaXR5MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIIC
+      CgKCAgEAxgl+JeCGej1RQMWz9NSrzklx4ZKISAC9oxgWr89k7sRJTsKPJK6JGcs/
+      aZSncmM8W/XVyAjFX3iVM3qny5niN6Q3Eq5h4XQTY3TJjLiKznRxxbDAyM6g4jx+
+      qfOw8+7YO9c0dO28nldjQX7zJpzMW6r6zM/D8IfGd7SsRrLRjcJCnwjKU4hu6IZr
+      LDwnq4DqWTvBmYxF/c2KSkL32r1Upe4VqkcormmfPr8IPvApc7fZSRrSEnPf8Gbg
+      By9l8HcNn6GXl+4IV7GBorw+sshwvey5TqKTmCbs1ZDlGRfIm/ZemumlrpQriLmi
+      P546Vq6eh4xJ14cEOoSB4lG2GFlp0w9/g86CSPaaHcniujUmTO1eIRjBp0cuD1Qm
+      MIhyUKfaH+dVurzpg0KFNYCKtTZANFZBDpmnhRJwYJewsmK8EI3ZCCuVQ5InaSPE
+      ssGWLVuOHbPZZsuG7RB32zU5XRcrUj3iCnCu6z6gRsg28wl88lflv7pRVT5rFtrW
+      uTL/yn9i3OorvR66f9c9ZhDydHfWHPczNLcIxnTHkrjrUZNh3byOgGV4bptKn/rU
+      XfHwEioujcOMWje4So9g1JSxehn1IOIwaN11VWsmeNTgt25tZmzg3DXGVSXgWPna
+      p1V9rTqegA+Lz31ZuEK7+mDHfrbso/hROrw7mhTbEwZSdCP9mScCAwEAAaNmMGQw
+      DgYDVR0PAQH/BAQDAgEGMBIGA1UdEwEB/wQIMAYBAf8CAQAwHQYDVR0OBBYEFPNO
+      dVWw1hQR4Ke4L6+yVleRD0WRMB8GA1UdIwQYMBaAFPNOdVWw1hQR4Ke4L6+yVleR
+      D0WRMA0GCSqGSIb3DQEBCwUAA4ICAQARy8WVQ66GTIxii8OO1HNNiGQmQ/qKxbum
+      YdRNeY2YAygmZegBO7dBt5sbaUVmMh6xgC3zVkbIrI2V8RpadPNxD814LwDFxuCV
+      H5rabc8fEMHyBUjWN3aYTdGkpkLcmKL/WMZzTdYv4ZPfe5rg9Cr6FKEKKPs4TQrx
+      aJfijwU9ZzDln+t2FA+yHeVT9Jv7LpS2EJvX8/lQpVGCIrIHALMFoQE+7+qyE/1w
+      zaZtTAZbvirzsH4e8mfed0Fa6yKOnLxcm4F5TzXbzP3L98tJttoGQH1Slwpir9Mn
+      EcjP1JjNJ7jjkDPk34X17bCh+wsPcYKQKDRYQNIR2lVlkNQ5R9uKl1S2zouF1/MT
+      /6DsGCBJyFbOYh7RBWO6H3PkNxucWmnLS4VyDuOLs4id4M3Kcby4AKSEAkCWnY6F
+      icldEjWbOFZ8ExpgYtJtx2WnZbEGYMfJ6tXVVcGNUM1VTzd4kKslJyVB7+/ooZJi
+      m6DInRnKl42KV3jUSPIQ//o2xgC4i45sorN3KLvJfGJ1ttQZ20kysLPnrbo/6v6G
+      e8Z+VCHS9OZs2zEuLoon/+tL5H7vi0E/Z7K/rpwmGBGnM23hqsl2yGuPW7pAzXap
+      qlsbhVg+TGczqXxdzh2dN+qvU+utiQ2C4//k1YLhFEeD0n69LNSEPSQBSBgPzfLy
+      wBH5wfR8yw==
+      -----END CERTIFICATE-----
+    catalina_opts: null
+    cc:
+      client_secret: openstack
+    clients:
+      cc-service-dashboards:
+        authorities: clients.read,clients.write,clients.admin
+        authorized-grant-types: authorization_code,client_credentials
+        scope: openid,cloud_controller_service_permissions.read
+        secret: openstack
+      cc_routing:
+        authorities: routing.router_groups.read
+        authorized-grant-types: client_credentials
+        secret: openstack
+      cf:
+        access-token-validity: 600
+        authorities: uaa.none
+        authorized-grant-types: password,refresh_token
+        override: true
+        refresh-token-validity: 604800
+        scope: cloud_controller.read,cloud_controller.write,openid,password.write,cloud_controller.admin,cloud_controller.admin_read_only,cloud_controller.global_auditor,scim.read,scim.write,doppler.firehose,uaa.user,routing.router_groups.read,routing.router_groups.write
+      cloud_controller_username_lookup:
+        authorities: scim.userids
+        authorized-grant-types: client_credentials
+        secret: openstack
+      doppler:
+        authorities: uaa.resource
+        authorized-grant-types: client_credentials
+        override: true
+        secret: openstack
+      gorouter:
+        authorities: routing.routes.read, routing.router_groups.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: openstack
+      login:
+        authorities: oauth.login,scim.write,clients.read,notifications.write,critical_notifications.write,emails.write,scim.userids,password.write
+        authorized-grant-types: authorization_code,client_credentials,refresh_token
+        autoapprove: true
+        override: true
+        redirect-uri: https://login.cf.kyland.com
+        scope: openid,oauth.approvals
+        secret: openstack
+      notifications:
+        authorities: cloud_controller.admin,scim.read
+        authorized-grant-types: client_credentials
+        secret: openstack
+      tcp_emitter:
+        authorities: routing.routes.write,routing.routes.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: openstack
+      tcp_router:
+        authorities: routing.routes.read, routing.router_groups.read
+        authorized-grant-types: client_credentials,refresh_token
+        secret: openstack
+    database: null
+    issuer: https://uaa.cf.kyland.com
+    jwt:
+      signing_key: |+
+        -----BEGIN RSA PRIVATE KEY-----
+        MIIEowIBAAKCAQEAtJt3bsVMjI1/W/FBJJMgBL1otx07yH05L6x/LTLGKEtsg3ND
+        AP10ZcQVIPxHcsMNiB3qy2v5GUqFzQAzoGYeDTrbey13Sl58TbRL9v+T4UYPT4Qv
+        ASXhTK2O0EVViMucCG9O0xdx/Izm84xv2edmvqMVq9rQgCd5bxNZG0sYPBZoBSfr
+        NBg2oc/Hvkf1aJrhXYpCjZPsFiCD4Qw9G1F7Qwpd8g7VMXKvRQer1iw2RWeDfiUu
+        QFCrcgSQ+ZLvhfsdmwtzWIUo3p6GCakFbkkJ09DV6jrEwRahVL67QWoboh2fPW83
+        xqHKp/e3NNfSjH5TVyidOW+yH3TuXzApjZwS1QIDAQABAoIBAQC0VDZf56eS/wUX
+        LD+64RurH+OaUhoLCN08eKNS4ctxGD300fUo2+iIY8wk7z/3mkG8kwKIsfo6Amqu
+        UXE6yjtfQlE7IB5npwe+HjNrH6zr1SQcZQL5xnS6NuDNmyzYNVRKJ7kwk8xAOf+v
+        VZ2omJ/B4NwWh5h/HOrmuQ7TbZt5AcjeOKzG33qivIGy7JPUbB2Iin1vgP61sKsf
+        01/91RK7wp9Qi+rSSSy7jTSkZE1xeog1jKQc5sT1n3BX08R4XRRtQoHvVX6eWb4p
+        N7SEdjw2+3LfPVxuZQKL7XGsKbY/HCgFyxhWGu78A/4wkh0A8AtjFDfyYv9UmYiV
+        ltaUZHzRAoGBANc29XePyirbn1dqPp4xwfQSaABFqVxoKO6WQOr28h2Bfq76uJC1
+        uyA7L78K68X9dl33vg/XrqKsi87kT/q3VcVhHBqvIFqZA2VOKP0vhTwiedRGXpAG
+        Sr0H9hos3h40dYc8jWJbOX3TLH3ZwV1KB3vZ67D3q56xUgbZicCUwYO/AoGBANbV
+        i8eJh1SkcBzD9sk2YMxpoiZC+jOTTcom8tHBA31NCNDFX4S6nCFOQLWIEUADTlw/
+        sqZAJ1b7oYQJwlpGJnngvZIF9YjapPwSOApjb2AJSbKWSqw1tnb9JYfFDY2hKc+K
+        oIXHGNi0e6AOpEsW8MrNKIlEfjJqpK0Hrceunn5rAoGAUgcViiuY/7rTwcqx8TO/
+        3BpD346tnZXpu/4y4hubbpmTwne3bxiFKSTF7wfnk4Am5Gvv2jP30PL5GrM0tLe6
+        DlAUGSuUplNZ0vv2bYH2Q1RUoQ7tLfHn/KKTL6jYRCT0gsYWkV15zTZ258TeiYMU
+        1STbS4kqtYKaZBf4BBnupBsCgYAmazn8DRQuhtmly0Wu5hKZe6qLvR6Rap5WsHBs
+        ImBFYClbbHCQg+635g6caCDtmanBxYJlSMPAQm+39SbUjgcDdLVyD67BMpiem4N6
+        GB4qxn5veYERGunujYbQqOSrl06q1teuFNTUrDIPhY7L/uZA3j+JjL4ktf2NE/p3
+        4zpk0QKBgBKmzosxzvtZy7v9eyzrnm0dZYXHf/k9ywdOaYhf2sP6LmvcO8vGqpcX
+        LeCq7PmPUm+Id/EtHsHmNXM2cbItNh2zrgi+wwO4FIbKzUDYbCwvcOOQrbwAui0g
+        e9CLRXehZo0Kibwa7f74/KsznVmzr8P69WPRmZN03kpY2MrJtyOg
+        -----END RSA PRIVATE KEY-----
+      verification_key: |+
+        -----BEGIN PUBLIC KEY-----
+        MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtJt3bsVMjI1/W/FBJJMg
+        BL1otx07yH05L6x/LTLGKEtsg3NDAP10ZcQVIPxHcsMNiB3qy2v5GUqFzQAzoGYe
+        DTrbey13Sl58TbRL9v+T4UYPT4QvASXhTK2O0EVViMucCG9O0xdx/Izm84xv2edm
+        vqMVq9rQgCd5bxNZG0sYPBZoBSfrNBg2oc/Hvkf1aJrhXYpCjZPsFiCD4Qw9G1F7
+        Qwpd8g7VMXKvRQer1iw2RWeDfiUuQFCrcgSQ+ZLvhfsdmwtzWIUo3p6GCakFbkkJ
+        09DV6jrEwRahVL67QWoboh2fPW83xqHKp/e3NNfSjH5TVyidOW+yH3TuXzApjZwS
+        1QIDAQAB
+        -----END PUBLIC KEY-----
+    ldap: null
+    login: null
+    newrelic: null
+    no_ssl: null
+    password:
+      policy:
+        minLength: null
+        requireDigit: null
+        requireLowerCaseCharacter: null
+        requireSpecialCharacter: null
+        requireUpperCaseCharacter: null
+    port: 8080
+    require_https: null
+    scim:
+      external_groups: null
+      groups: null
+      userids_enabled: true
+      users:
+      - groups:
+        - scim.write
+        - scim.read
+        - openid
+        - cloud_controller.admin
+        - doppler.firehose
+        name: admin
+        password: openstack
+    ssl:
+      port: 8443
+    sslCertificate: |+
+      -----BEGIN CERTIFICATE-----
+      MIIENjCCAh6gAwIBAgIQLeK6Q+kx1Xpj5slq8gYQbDANBgkqhkiG9w0BAQsFADAZ
+      MRcwFQYDVQQDEw5jZXJ0LWF1dGhvcml0eTAeFw0xNzAzMjcxMDQ2MTBaFw0xOTAz
+      MjcxMDQ2MTBaMCIxIDAeBgNVBAMTF3VhYS5zZXJ2aWNlLmNmLmludGVybmFsMIIB
+      IjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA0wB5ftDhF+OvlMRG4c7H8m0x
+      KpMmcQPDJRF/Ayb457NJ11n4imBi1P2RTUnmwGsegz0vyX0iemQf5AobyEg/9+gk
+      b9Y35762IO++4vjtGtB1GMHpAOQU9XGH2xFAuMzfnd1P/tL65ZFQ60FRjX/ooilA
+      pIUGAw8TtlmiQvo37MocC9UFGc+kRqV6JehUNZtQb9I+hzMvfDdYCONx0W4/Kmrk
+      qeQlaxpkmxSnfvauCqxffClR4kCYl6LaZqE9Y/9iA3rHl5yfb6CwOIdnyWshXKgI
+      X4jDg3ljXO8KuSkSBpDnCWNFDii8OVYa91IkpnhpgdzOJNUUUGUSFfBoUZryfQID
+      AQABo3EwbzAOBgNVHQ8BAf8EBAMCA7gwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsG
+      AQUFBwMCMB0GA1UdDgQWBBRj4A2eGSGsknzzNge0Mj2yn62mVjAfBgNVHSMEGDAW
+      gBTzTnVVsNYUEeCnuC+vslZXkQ9FkTANBgkqhkiG9w0BAQsFAAOCAgEAH9woQ7lt
+      F/o9VipP5usajMs4AMhL+3PlRpYaTnZt8m7G3zST2bwa4EItY0EyO4oTO6NKrZmW
+      DeS/T9rKJb8FT6rgOip9W/IvdtKHVE8Ug1KQOrz7U4BiNTuF5i/nEyG3ZSOGvAyp
+      eaqyjp2eSJUGDxOUD0m7QuDoRZY1Nzs7irrt1rUMB9PIp6g0i1jc9dVoCd8xtaWb
+      Wkes4HPpwOz1wSC37tICDB0eQ37dZsj0eouUH84PU9tGPlus6GShtRl44vWfE4dG
+      16kDgP6a+e+lEoLI7R0pihdwmaozDSFEadlRqbN/0NLF1pzDdMV0rB48UyYXQL37
+      rnZ+vnAwgDy4yIcSKXshbdUNZA4kFIDWHIL23GUVdFsJJgy35iLCf66YoWe0rc7b
+      hV7ppCfHvDnJiTMdvM6C3NmJr3RamnzF2nyxTbIkCU2kKvL3tyYlphJ+fRe3nJ0V
+      VR8dQ9vCEX/iG2go2qVyxEIqb1/dCwasYO+QfKyEWhQPNBmTlthP5HGEVmjteaLg
+      N3vhmpIq3cG2/L7jjHy4tYyRxmqTM6YraJOFLi6XHnvk66/qaQ9zLmX6xF8NzqhR
+      pdsvVCXuvhozKyBktYdiYF9zJ3PxxNzyaWsDG79YHRdp/+9QL9Uw9tO/ICihXwSX
+      ln1m5PwJeuXc5lY6ZKrplK69Cj4Vd4e2M8s=
+      -----END CERTIFICATE-----
+    sslPrivateKey: |+
+      -----BEGIN RSA PRIVATE KEY-----
+      MIIEpQIBAAKCAQEA0wB5ftDhF+OvlMRG4c7H8m0xKpMmcQPDJRF/Ayb457NJ11n4
+      imBi1P2RTUnmwGsegz0vyX0iemQf5AobyEg/9+gkb9Y35762IO++4vjtGtB1GMHp
+      AOQU9XGH2xFAuMzfnd1P/tL65ZFQ60FRjX/ooilApIUGAw8TtlmiQvo37MocC9UF
+      Gc+kRqV6JehUNZtQb9I+hzMvfDdYCONx0W4/KmrkqeQlaxpkmxSnfvauCqxffClR
+      4kCYl6LaZqE9Y/9iA3rHl5yfb6CwOIdnyWshXKgIX4jDg3ljXO8KuSkSBpDnCWNF
+      Dii8OVYa91IkpnhpgdzOJNUUUGUSFfBoUZryfQIDAQABAoIBAQCRL+dpyoLINGQx
+      omj/oZBVkKrfF8fAxgz2KbbSzXNBw01RAFiTpsT6t8vOecZsqoihV23VX+RkgRas
+      jAQX6RcTF0pTJfzr2n9p5G3dsdk8tSmNsogIk+iUBt2rcJCvWFGaR5lux2/anQYo
+      Cpb6HYROaMJRMjMz0aEHvV94ZMIsjJhRzhI5JpPgRwqEJBXUzBX0QFMw7+lbWPW6
+      V9r9diWKmBhF1I1iabSZU4kHTLSeE8p8v63GertXc7jbf6ktq8gqUWyAq6x4dJvN
+      KmjdMLL0Q0v6uD7hQmFF/0klnv2sK88MIom0Gy9CdnB3XDdXMBB/Nfz6CP2+PcZ0
+      Qadmd2wlAoGBAP7UVTLzh0IX7e3hHNweLuvvxOGZfBVUk4xM846Uc5KysScp2/wQ
+      HNMBLk0tECe8xYcfvulMrMfxnsIj2dX/oLPDpvgTaXfrHFV4hYAiYWoWgSqdD0PN
+      v5ncZXIuwblgtgH4Xur5JNqmrKeb0zOhynyCNzRBLw5aazrjeBGIuwsvAoGBANP4
+      mkfhsJmYd4IIQLyxHtGwGCEsB7CY1eNu+NI6eB818wbRWU5VwYHNWsF268yHYj2m
+      o+a38UfVhRytHaHYY5M4lI8/ZQ21rymeIdTl9SLlobUYjV7MSMYiMJkklm89tC7I
+      CX2KxCITbVr1jrgjmtj1JFBybyhCZrJtexsI2UITAoGAB7rhKr6AZ9zZ9tFRUswH
+      mFiZnE5PmUYLg8IB0V1ndBe/j/SRG8BRX4U1plmrl8j+JO8tl14gD6CgtDrqLLeo
+      ZEuXEQdlt6GGJoGVayGf2tv75xMEl4XyPfSVjzUj4z+vxbeHCZGtMITFz//GFFbg
+      EY7RpeAkUUck4ZBs3/tJ0TkCgYEAshj2x96AmwzXnJGCkwfedSAXpgdwjphbXbQn
+      q7skolSZ1OiguIilBYKc9mAMztQRXutcWsXCHDDynp11gD5nq5Kmf5UsOtCkU7th
+      gZeU17VIoPf4D+ZkXtTrMEDlhKG7enLoRmsJT/gysXIQb/a6a//Meysq6hCgaNpD
+      zPsqT7ECgYEA9yey0S6EoxOd5nDwJKd1qin5CyCSm7gUJHD8/oKTSbYx8RMFrJkF
+      R6bd+rjD9ivesovijGPI1Nbxg6fT5TEmthEbDK8lu/aC0J1LpZX7gmu1BN6OEEYq
+      apjPresnnY+pOD45SDX2dp82mDslYDFkoMOThdyEls/VrbjnU+JvklM=
+      -----END RSA PRIVATE KEY-----
+    token_endpoint: null
+    url: https://uaa.cf.kyland.com
+    user:
+      authorities:
+      - openid
+      - scim.me
+      - cloud_controller.read
+      - cloud_controller.write
+      - cloud_controller_service_permissions.read
+      - password.write
+      - uaa.user
+      - approvals.me
+      - oauth.approvals
+      - notification_preferences.read
+      - notification_preferences.write
+      - profile
+      - roles
+      - user_attributes
+      - cloud_controller.user
+      - actuator.read
+    zones:
+      internal:
+        hostnames:
+        - uaa.service.cf.internal
+  uaadb:
+    address: 10.0.1.129
+    databases:
+    - name: uaadb
+      tag: uaa
+    db_scheme: postgresql
+    port: 5524
+    roles:
+    - name: uaaadmin
+      password: openstack
+      tag: admin
+releases:
+- name: cf
+  version: latest
+resource_pools:
+- cloud_properties:
+    instance_type: m1.small
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: small_z1
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.small
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: small_z2
+  network: cf2
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.medium
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: medium_z1
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.medium
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: medium_z2
+  network: cf2
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.large
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: large_z1
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.large
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: large_z2
+  network: cf2
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.large
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: runner_z1
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.large
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: runner_z2
+  network: cf2
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.medium
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: router_z1
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.medium
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: router_z2
+  network: cf2
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.small
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: small_errand
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+- cloud_properties:
+    instance_type: m1.large
+  env:
+    bosh:
+      password: $6$4gDD3aV0rdqlrKC$2axHCxGKIObs6tAmMTqYCspcdvQXh3JJcvWOY2WGb4SrdXtnCyNaWlrf3WEqvYR2MYizEGp3kMmbpwBC6jsHt0
+  name: xlarge_errand
+  network: cf1
+  stemcell:
+    name: bosh-openstack-kvm-ubuntu-trusty-go_agent
+    version: latest
+update:
+  canaries: 1
+  canary_watch_time: 30000-600000
+  max_in_flight: 1
+  serial: true
+  update_watch_time: 5000-600000
+

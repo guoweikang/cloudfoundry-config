@@ -1,5 +1,5 @@
 ---
-director_uuid: 61c6d9dd-5cbc-4df2-bd44-e3bb93660f32
+director_uuid: 9607c130-84a5-4e87-a070-b6c5d041044a
 
 meta:
   environment: openstack-cf
@@ -22,26 +22,28 @@ networks:
       - 10.0.1.2 - 10.0.1.100
       - 10.0.1.200 - 10.0.1.254
       dns:
+      - 192.168.60.69
       - 8.8.8.8
       static:
       - 10.0.1.125 - 10.0.1.175
       cloud_properties:
-        net_id: 5b3fdc43-504e-42bc-8a9d-81445ccbc4fb
+        net_id: 584bdfc6-76bb-4567-a2fc-d4c820107269
         security_groups: ["CF"]
   - name: cf2
     type: manual
     subnets: 
-    - range: 10.0.1.0/24
-      gateway: 10.0.1.1
+    - range: 10.0.2.0/24
+      gateway: 10.0.2.1
       reserved:
-      - 10.0.1.2 - 10.0.1.100
-      - 10.0.1.200 - 10.0.1.254
+      - 10.0.2.2 - 10.0.2.100
+      - 10.0.2.200 - 10.0.2.254
       dns:
+      - 192.168.60.69
       - 8.8.8.8
       static:
-      - 10.0.1.125 - 10.0.1.175
+      - 10.0.2.125 - 10.0.2.175
       cloud_properties:
-        net_id: 5b3fdc43-504e-42bc-8a9d-81445ccbc4fb
+        net_id: ca51acc1-4398-4c71-bb81-0982d9ffc426 
         security_groups: ["CF"]
 
 properties:
